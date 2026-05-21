@@ -5,6 +5,6 @@ dist/
 coverage/
 .vite/
 *.tsbuildinfo
-.omc
+.omc/
 docs/.vitepress
 .trae/
