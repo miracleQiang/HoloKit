@@ -1,0 +1,10 @@
+{
+  "name": "@holokit/vue2",
+  "version": "0.1.0",
+  "description": "HoloKit Vue2 适配器",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "peerDependencies": { "vue": "^2.7.0", "holokit": "workspace:*" }
+}

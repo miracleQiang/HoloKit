@@ -1,0 +1,16 @@
+{
+  "name": "@holokit/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "^1.1.0",
+    "three": "^0.164.0",
+    "@types/three": "^0.164.0",
+    "vue": "^3.4.0"
+  }
+}

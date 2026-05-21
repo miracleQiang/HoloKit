@@ -1,0 +1,24 @@
+{
+  "name": "holokit",
+  "version": "0.1.0",
+  "description": "HoloKit 3D 数据可视化组件库",
+  "main": "dist/holokit.umd.js",
+  "module": "dist/holokit.esm.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": { "build": "rollup -c" },
+  "dependencies": {
+    "@holokit/core": "workspace:*",
+    "@holokit/charts": "workspace:*",
+    "@holokit/map": "workspace:*",
+    "three": "^0.164.0"
+  },
+  "devDependencies": {
+    "rollup": "^4.14.0",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "rollup-plugin-terser": "^7.0.0",
+    "tslib": "^2.6.0"
+  }
+}

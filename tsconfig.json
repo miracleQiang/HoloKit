@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@holokit/core": ["packages/core/src"]
+    }
+  },
+  "references": [
+    { "path": "packages/core" }
+  ]
+}

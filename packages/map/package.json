@@ -1,0 +1,27 @@
+{
+  "name": "@holokit/map",
+  "version": "0.1.0",
+  "description": "HoloKit 3D 地图与 GIS 模块",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@holokit/core": "workspace:*",
+    "three": "^0.164.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.164.0",
+    "rollup": "^4.14.0",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "tslib": "^2.6.0",
+    "vitest": "^1.6.0",
+    "jsdom": "^24.0.0"
+  }
+}

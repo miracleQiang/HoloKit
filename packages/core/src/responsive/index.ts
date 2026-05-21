@@ -1,0 +1,1 @@
+export { ResponsiveManager } from './ResizeObserver'
