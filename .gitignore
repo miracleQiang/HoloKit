@@ -6,7 +6,7 @@ coverage/
 .vite/
 *.tsbuildinfo
 .omc/
-docs/.vitepress
+docs/.vitepress/cache
 .trae/
 .claude/
 docs/.omc/

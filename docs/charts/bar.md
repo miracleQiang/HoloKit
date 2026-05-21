@@ -1,5 +1,9 @@
 # 3D 柱状图
 
+
+<ClientOnly>
+  <BarChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript

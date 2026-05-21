@@ -1,5 +1,9 @@
 # 3D 雷达图
 
+
+<ClientOnly>
+  <RadarChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript

@@ -1,5 +1,9 @@
 # 3D 散点图
 
+
+<ClientOnly>
+  <ScatterChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript

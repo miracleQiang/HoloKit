@@ -10,9 +10,9 @@ import {
   HoloKitTheme,
 } from '@holokit/core'
 
-export interface ChartOptions {
+export interface ChartOptions<TData = any[]> {
   theme?: string | HoloKitTheme
-  data?: any[]
+  data?: TData
   width?: number
   height?: number
   animation?: {
@@ -30,7 +30,7 @@ export interface ChartOptions {
   }
 }
 
-export abstract class BaseChart3D {
+export abstract class BaseChart3D<TData = any[]> {
   protected sceneManager: SceneManager
   protected themeEngine: ThemeEngine
   protected animationManager: AnimationManager
@@ -38,10 +38,13 @@ export abstract class BaseChart3D {
   protected responsiveManager: ResponsiveManager
   protected tooltip: Tooltip
   protected container: HTMLElement
-  protected options: ChartOptions
+  protected options: ChartOptions<TData>
   protected chartGroup: THREE.Group
+  protected currentData: TData | null = null
+  protected disposed = false
+  private renderUnsubs: Array<() => void> = []
 
-  constructor(container: HTMLElement, options: ChartOptions = {}) {
+  constructor(container: HTMLElement, options: ChartOptions<TData> = {}) {
     this.container = container
     this.options = options
 
@@ -61,18 +64,22 @@ export abstract class BaseChart3D {
     this.sceneManager.scene.add(this.chartGroup)
 
     if (options.data) {
+      this.currentData = options.data
       this.buildChart(options.data)
     }
 
     this.sceneManager.start()
   }
 
-  setData(data: any[]): void {
+  setData(data: TData): void {
+    if (this.disposed) return
+    this.currentData = data
     this.clearChart()
     this.buildChart(data)
   }
 
   setTheme(theme: string | HoloKitTheme): void {
+    if (this.disposed) return
     this.themeEngine.setTheme(theme)
     this.rebuildWithCurrentData()
   }
@@ -83,9 +90,14 @@ export abstract class BaseChart3D {
   }
 
   dispose(): void {
+    if (this.disposed) return
+    this.disposed = true
     this.sceneManager.stop()
+    this.renderUnsubs.forEach((fn) => fn())
+    this.renderUnsubs = []
     this.clearChart()
     this.animationManager.dispose()
+    this.interactionManager.dispose()
     this.tooltip.dispose()
     this.responsiveManager.dispose()
     this.sceneManager.dispose()
@@ -98,23 +110,36 @@ export abstract class BaseChart3D {
     })
   }
 
-  protected abstract buildChart(data: any[]): void
+  protected addRenderHook(cb: (delta: number) => void): void {
+    const unsub = this.sceneManager.onRender(cb)
+    this.renderUnsubs.push(unsub)
+  }
 
-  protected abstract rebuildWithCurrentData(): void
+  protected abstract buildChart(data: TData): void
+
+  protected rebuildWithCurrentData(): void {
+    this.clearChart()
+    if (this.currentData) this.buildChart(this.currentData)
+  }
 
   protected clearChart(): void {
+    this.interactionManager.clearInteractive()
     while (this.chartGroup.children.length > 0) {
       const child = this.chartGroup.children[0]
       this.chartGroup.remove(child)
-      if (child instanceof THREE.Mesh) {
-        child.geometry.dispose()
-        if (Array.isArray(child.material)) {
-          child.material.forEach((m) => m.dispose())
-        } else {
-          child.material.dispose()
-        }
-      }
+      this.disposeObject(child)
     }
+  }
+
+  protected disposeObject(obj: THREE.Object3D): void {
+    obj.traverse((node) => {
+      if ((node as any).geometry) (node as any).geometry.dispose?.()
+      const mat = (node as any).material
+      if (mat) {
+        if (Array.isArray(mat)) mat.forEach((m: any) => m.dispose?.())
+        else mat.dispose?.()
+      }
+    })
   }
 
   protected animateEntrance(mesh: THREE.Object3D, targetScale: number, index: number): void {

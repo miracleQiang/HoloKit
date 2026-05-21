@@ -1,5 +1,9 @@
 # 3D 折线图
 
+
+<ClientOnly>
+  <LineChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript

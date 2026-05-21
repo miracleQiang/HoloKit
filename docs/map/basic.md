@@ -1,5 +1,9 @@
 # 地图基础用法
 
+
+<ClientOnly>
+  <MapDemo />
+</ClientOnly>
 ## 创建地图
 
 ```javascript

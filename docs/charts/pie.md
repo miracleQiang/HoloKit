@@ -1,5 +1,9 @@
 # 3D 饼图
 
+
+<ClientOnly>
+  <PieChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript

@@ -1,5 +1,9 @@
 # 3D 地球图
 
+
+<ClientOnly>
+  <GlobeDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript

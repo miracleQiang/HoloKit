@@ -16,15 +16,19 @@ export class InteractionManager {
   private interactiveObjects: THREE.Object3D[] = []
   private hoveredObject: THREE.Object3D | null = null
   private handlers: Map<string, Set<InteractionHandler>> = new Map()
+  private boundMouseMove: (e: MouseEvent) => void
+  private boundClick: (e: MouseEvent) => void
 
   constructor(sceneManager: SceneManager) {
     this.sceneManager = sceneManager
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
+    this.boundMouseMove = this.onMouseMove.bind(this)
+    this.boundClick = this.onClick.bind(this)
 
     const canvas = sceneManager.renderer.domElement
-    canvas.addEventListener('mousemove', this.onMouseMove.bind(this))
-    canvas.addEventListener('click', this.onClick.bind(this))
+    canvas.addEventListener('mousemove', this.boundMouseMove)
+    canvas.addEventListener('click', this.boundClick)
   }
 
   addInteractive(object: THREE.Object3D): void {
@@ -36,12 +40,26 @@ export class InteractionManager {
   removeInteractive(object: THREE.Object3D): void {
     const idx = this.interactiveObjects.indexOf(object)
     if (idx !== -1) this.interactiveObjects.splice(idx, 1)
+    if (this.hoveredObject === object) this.hoveredObject = null
+  }
+
+  clearInteractive(): void {
+    this.interactiveObjects = []
+    this.hoveredObject = null
   }
 
   on(event: 'hover' | 'unhover' | 'click', handler: InteractionHandler): () => void {
     if (!this.handlers.has(event)) this.handlers.set(event, new Set())
     this.handlers.get(event)!.add(handler)
     return () => this.handlers.get(event)?.delete(handler)
+  }
+
+  off(event: 'hover' | 'unhover' | 'click', handler?: InteractionHandler): void {
+    if (!handler) {
+      this.handlers.delete(event)
+    } else {
+      this.handlers.get(event)?.delete(handler)
+    }
   }
 
   private emit(event: string, data: InteractionEvent): void {
@@ -54,16 +72,29 @@ export class InteractionManager {
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
   }
 
-  private getIntersection(e: MouseEvent): THREE.Intersection | null {
+  private resolveInteractiveAncestor(obj: THREE.Object3D): THREE.Object3D | null {
+    let cur: THREE.Object3D | null = obj
+    while (cur) {
+      if (this.interactiveObjects.includes(cur)) return cur
+      cur = cur.parent
+    }
+    return null
+  }
+
+  private getIntersection(e: MouseEvent): { object: THREE.Object3D; point: THREE.Vector3 } | null {
     this.updateMouse(e)
     this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera)
     const intersects = this.raycaster.intersectObjects(this.interactiveObjects, true)
-    return intersects.length > 0 ? intersects[0] : null
+    for (const hit of intersects) {
+      const ancestor = this.resolveInteractiveAncestor(hit.object)
+      if (ancestor) return { object: ancestor, point: hit.point }
+    }
+    return null
   }
 
   private onMouseMove(e: MouseEvent): void {
-    const intersection = this.getIntersection(e)
-    const hitObject = intersection?.object || null
+    const hit = this.getIntersection(e)
+    const hitObject = hit?.object || null
 
     if (hitObject !== this.hoveredObject) {
       if (this.hoveredObject) {
@@ -73,8 +104,8 @@ export class InteractionManager {
           originalEvent: e,
         })
       }
-      if (hitObject && intersection) {
-        this.emit('hover', { object: hitObject, point: intersection.point, originalEvent: e })
+      if (hitObject && hit) {
+        this.emit('hover', { object: hitObject, point: hit.point, originalEvent: e })
       }
       this.hoveredObject = hitObject
     }
@@ -83,21 +114,18 @@ export class InteractionManager {
   }
 
   private onClick(e: MouseEvent): void {
-    const intersection = this.getIntersection(e)
-    if (intersection) {
-      this.emit('click', {
-        object: intersection.object,
-        point: intersection.point,
-        originalEvent: e,
-      })
+    const hit = this.getIntersection(e)
+    if (hit) {
+      this.emit('click', { object: hit.object, point: hit.point, originalEvent: e })
     }
   }
 
   dispose(): void {
     const canvas = this.sceneManager.renderer.domElement
-    canvas.removeEventListener('mousemove', this.onMouseMove.bind(this))
-    canvas.removeEventListener('click', this.onClick.bind(this))
+    canvas.removeEventListener('mousemove', this.boundMouseMove)
+    canvas.removeEventListener('click', this.boundClick)
     this.handlers.clear()
     this.interactiveObjects = []
+    this.hoveredObject = null
   }
 }

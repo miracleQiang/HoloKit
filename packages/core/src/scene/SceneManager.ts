@@ -27,13 +27,16 @@ export class SceneManager {
   private animationId: number | null = null
   private renderCallbacks: Set<(delta: number) => void> = new Set()
   private clock: THREE.Clock
+  private disposed = false
 
   constructor(container: HTMLElement, options: SceneManagerOptions = {}) {
     const opts = { ...DEFAULT_OPTIONS, ...options }
     this.container = container
     this.clock = new THREE.Clock()
 
-    const { width, height } = container.getBoundingClientRect()
+    const rect = container.getBoundingClientRect()
+    const width = rect.width || 1
+    const height = rect.height || 1
 
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color(opts.backgroundColor)
@@ -62,6 +65,8 @@ export class SceneManager {
   }
 
   start(): void {
+    if (this.disposed) return
+    if (this.animationId !== null) return
     const animate = () => {
       this.animationId = requestAnimationFrame(animate)
       const delta = this.clock.getDelta()
@@ -80,16 +85,21 @@ export class SceneManager {
   }
 
   resize(width: number, height: number): void {
+    if (!width || !height) return
     this.camera.aspect = width / height
     this.camera.updateProjectionMatrix()
     this.renderer.setSize(width, height)
   }
 
   dispose(): void {
+    if (this.disposed) return
+    this.disposed = true
     this.stop()
     this.renderCallbacks.clear()
     this.controls?.dispose()
     this.renderer.dispose()
-    this.container.removeChild(this.renderer.domElement)
+    if (this.renderer.domElement.parentElement === this.container) {
+      this.container.removeChild(this.renderer.domElement)
+    }
   }
 }
