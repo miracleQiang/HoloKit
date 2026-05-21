@@ -4,7 +4,8 @@
       "Bash(python3 -c ' *)",
       "Bash(pnpm install *)",
       "Bash(npx tsc *)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(git rm *)"
     ]
   }
 }
