@@ -1,5 +1,7 @@
 # HoloKit
 
+[![GitHub](https://img.shields.io/github/stars/miracleQiang/HoloKit?style=flat-square)](https://github.com/miracleQiang/HoloKit)
+
 基于 Three.js 的 3D 数据可视化组件库。支持 Vue2 / Vue3 / React，一行代码创建沉浸式 3D 图表。
 
 ## 特性

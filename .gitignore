@@ -8,3 +8,5 @@ coverage/
 .omc/
 docs/.vitepress
 .trae/
+.claude/
+docs/.omc/
