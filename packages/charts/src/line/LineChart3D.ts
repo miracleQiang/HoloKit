@@ -2,14 +2,15 @@ import * as THREE from 'three'
 import { BaseChart3D, ChartOptions } from '../base/BaseChart3D'
 
 export interface LineChartData { label: string; value: number }
-export interface LineChart3DOptions extends ChartOptions {
+export interface LineChart3DOptions extends ChartOptions<LineChartData[]> {
   lineWidth?: number
   areaFill?: boolean
   smooth?: boolean
+  showPoints?: boolean
+  pointSize?: number
 }
 
-export class LineChart3D extends BaseChart3D {
-  private currentData: LineChartData[] = []
+export class LineChart3D extends BaseChart3D<LineChartData[]> {
   private lineOptions: LineChart3DOptions
 
   constructor(container: HTMLElement, options: LineChart3DOptions = {}) {
@@ -18,11 +19,11 @@ export class LineChart3D extends BaseChart3D {
   }
 
   protected buildChart(data: LineChartData[]): void {
-    this.currentData = data
-    const maxValue = Math.max(...data.map((d) => d.value))
+    if (!data.length) return
+    const maxValue = Math.max(...data.map((d) => d.value)) || 1
     const totalWidth = 6
-    const step = totalWidth / (data.length - 1)
-    const startX = -totalWidth / 2
+    const step = data.length > 1 ? totalWidth / (data.length - 1) : 0
+    const startX = data.length > 1 ? -totalWidth / 2 : 0
 
     const points = data.map((item, i) => {
       const x = startX + i * step
@@ -35,28 +36,29 @@ export class LineChart3D extends BaseChart3D {
       const smoothPoints = curve.getPoints(points.length * 10)
       this.addLine(smoothPoints)
       if (this.lineOptions.areaFill) this.addArea(smoothPoints)
-    } else {
+    } else if (points.length >= 2) {
       this.addLine(points)
       if (this.lineOptions.areaFill) this.addArea(points)
     }
 
-    points.forEach((point, index) => {
-      const geometry = new THREE.SphereGeometry(0.08, 16, 16)
-      const material = this.themeEngine.createMaterial(0)
-      const sphere = new THREE.Mesh(geometry, material)
-      sphere.position.copy(point)
-      sphere.userData = { chartData: data[index], index }
-      this.chartGroup.add(sphere)
-      this.interactionManager.addInteractive(sphere)
-    })
+    if (this.lineOptions.showPoints !== false) {
+      const pointSize = this.lineOptions.pointSize ?? 0.08
+      points.forEach((point, index) => {
+        const geometry = new THREE.SphereGeometry(pointSize, 16, 16)
+        const material = this.themeEngine.createMaterial(0)
+        const sphere = new THREE.Mesh(geometry, material)
+        sphere.position.copy(point)
+        sphere.userData = { chartData: data[index], index }
+        this.chartGroup.add(sphere)
+        this.interactionManager.addInteractive(sphere)
+      })
+    }
   }
 
   private addLine(points: THREE.Vector3[]): void {
     const geometry = new THREE.BufferGeometry().setFromPoints(points)
-    const color = this.themeEngine.getThreeColor(0)
-    const material = new THREE.LineBasicMaterial({ color, linewidth: this.lineOptions.lineWidth || 2 })
-    const line = new THREE.Line(geometry, material)
-    this.chartGroup.add(line)
+    const material = this.themeEngine.createLineMaterial(0, { linewidth: this.lineOptions.lineWidth ?? 2 })
+    this.chartGroup.add(new THREE.Line(geometry, material))
   }
 
   private addArea(points: THREE.Vector3[]): void {
@@ -65,16 +67,9 @@ export class LineChart3D extends BaseChart3D {
     points.forEach((p) => shape.lineTo(p.x, p.y))
     shape.lineTo(points[points.length - 1].x, 0)
     shape.closePath()
-
     const geometry = new THREE.ShapeGeometry(shape)
     const color = this.themeEngine.getThreeColor(0)
     const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
-    const mesh = new THREE.Mesh(geometry, material)
-    this.chartGroup.add(mesh)
-  }
-
-  protected rebuildWithCurrentData(): void {
-    this.clearChart()
-    if (this.currentData.length) this.buildChart(this.currentData)
+    this.chartGroup.add(new THREE.Mesh(geometry, material))
   }
 }

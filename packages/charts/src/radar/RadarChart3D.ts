@@ -2,14 +2,14 @@ import * as THREE from 'three'
 import { BaseChart3D, ChartOptions } from '../base/BaseChart3D'
 
 export interface RadarChartData { axis: string; value: number }
-export interface RadarChart3DOptions extends ChartOptions {
+export interface RadarChart3DOptions extends ChartOptions<RadarChartData[][]> {
   axisCount?: number
   fillOpacity?: number
   maxValue?: number
+  showGrid?: boolean
 }
 
-export class RadarChart3D extends BaseChart3D {
-  private currentData: RadarChartData[][] = []
+export class RadarChart3D extends BaseChart3D<RadarChartData[][]> {
   private radarOptions: RadarChart3DOptions
 
   constructor(container: HTMLElement, options: RadarChart3DOptions = {}) {
@@ -18,12 +18,12 @@ export class RadarChart3D extends BaseChart3D {
   }
 
   protected buildChart(data: RadarChartData[][]): void {
-    this.currentData = data
-    const maxVal = this.radarOptions.maxValue || Math.max(...data.flat().map((d) => d.value))
-    const axisCount = data[0]?.length || 0
+    if (!data?.length || !data[0]?.length) return
+    const maxVal = this.radarOptions.maxValue || Math.max(...data.flat().map((d) => d.value)) || 1
+    const axisCount = data[0].length
     const radius = 2
 
-    this.addGrid(axisCount, radius)
+    if (this.radarOptions.showGrid !== false) this.addGrid(axisCount, radius)
 
     data.forEach((series, seriesIdx) => {
       const points: THREE.Vector3[] = []
@@ -35,8 +35,7 @@ export class RadarChart3D extends BaseChart3D {
       points.push(points[0].clone())
 
       const lineGeo = new THREE.BufferGeometry().setFromPoints(points)
-      const color = this.themeEngine.getThreeColor(seriesIdx)
-      const lineMat = new THREE.LineBasicMaterial({ color })
+      const lineMat = this.themeEngine.createLineMaterial(seriesIdx)
       this.chartGroup.add(new THREE.Line(lineGeo, lineMat))
 
       const shape = new THREE.Shape()
@@ -46,9 +45,9 @@ export class RadarChart3D extends BaseChart3D {
       fillGeo.rotateX(-Math.PI / 2)
       fillGeo.translate(0, 0.01 * seriesIdx, 0)
       const fillMat = new THREE.MeshBasicMaterial({
-        color,
+        color: this.themeEngine.getThreeColor(seriesIdx),
         transparent: true,
-        opacity: this.radarOptions.fillOpacity || 0.3,
+        opacity: this.radarOptions.fillOpacity ?? 0.3,
         side: THREE.DoubleSide,
       })
       this.chartGroup.add(new THREE.Mesh(fillGeo, fillMat))
@@ -56,15 +55,12 @@ export class RadarChart3D extends BaseChart3D {
   }
 
   private addGrid(axisCount: number, radius: number): void {
-    const theme = this.themeEngine.getTheme()
-    const gridMat = new THREE.LineBasicMaterial({ color: theme.colors.grid, transparent: true, opacity: 0.4 })
-
+    const gridMat = this.themeEngine.createGridMaterial()
     for (let i = 0; i < axisCount; i++) {
       const angle = (i / axisCount) * Math.PI * 2 - Math.PI / 2
       const pts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius)]
       this.chartGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat))
     }
-
     for (let ring = 1; ring <= 4; ring++) {
       const r = (ring / 4) * radius
       const ringPts: THREE.Vector3[] = []
@@ -74,10 +70,5 @@ export class RadarChart3D extends BaseChart3D {
       }
       this.chartGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPts), gridMat))
     }
-  }
-
-  protected rebuildWithCurrentData(): void {
-    this.clearChart()
-    if (this.currentData.length) this.buildChart(this.currentData)
   }
 }

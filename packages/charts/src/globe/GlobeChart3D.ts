@@ -2,10 +2,13 @@ import * as THREE from 'three'
 import { BaseChart3D, ChartOptions } from '../base/BaseChart3D'
 
 export interface GlobeMarker { lng: number; lat: number; label?: string; value?: number }
-export interface GlobeChart3DOptions extends ChartOptions { radius?: number; autoRotate?: boolean }
+export interface GlobeChart3DOptions extends ChartOptions<GlobeMarker[]> {
+  radius?: number
+  autoRotate?: boolean
+  markerSize?: number
+}
 
-export class GlobeChart3D extends BaseChart3D {
-  private currentData: GlobeMarker[] = []
+export class GlobeChart3D extends BaseChart3D<GlobeMarker[]> {
   private globeOptions: GlobeChart3DOptions
   private globe: THREE.Mesh | null = null
 
@@ -13,11 +16,13 @@ export class GlobeChart3D extends BaseChart3D {
     super(container, { ...options, camera: { position: [0, 0, 5], ...options.camera } })
     this.globeOptions = options
     this.createGlobe()
-    if (options.autoRotate !== false) this.enableAutoRotate()
+    if (options.autoRotate !== false) {
+      this.addRenderHook(() => { if (this.globe) this.globe.rotation.y += 0.002 })
+    }
   }
 
   private createGlobe(): void {
-    const radius = this.globeOptions.radius || 2
+    const radius = this.globeOptions.radius ?? 2
     const geometry = new THREE.SphereGeometry(radius, 64, 64)
     const material = new THREE.MeshStandardMaterial({
       color: this.themeEngine.getTheme().colors.background,
@@ -27,12 +32,6 @@ export class GlobeChart3D extends BaseChart3D {
     })
     this.globe = new THREE.Mesh(geometry, material)
     this.chartGroup.add(this.globe)
-  }
-
-  private enableAutoRotate(): void {
-    this.sceneManager.onRender(() => {
-      if (this.globe) this.globe.rotation.y += 0.002
-    })
   }
 
   private latLngToVector3(lat: number, lng: number, radius: number): THREE.Vector3 {
@@ -46,21 +45,28 @@ export class GlobeChart3D extends BaseChart3D {
   }
 
   protected buildChart(data: GlobeMarker[]): void {
-    this.currentData = data
-    const radius = this.globeOptions.radius || 2
+    if (!data?.length) return
+    if (!this.globe) this.createGlobe()
+    const radius = this.globeOptions.radius ?? 2
+    const baseSize = this.globeOptions.markerSize ?? 0.05
 
     data.forEach((marker, index) => {
       const pos = this.latLngToVector3(marker.lat, marker.lng, radius * 1.02)
-      const size = marker.value ? 0.03 + marker.value * 0.01 : 0.05
-      const geometry = new THREE.SphereGeometry(size, 8, 8)
+      const size = marker.value ? baseSize + marker.value * 0.005 : baseSize
+      const geometry = new THREE.SphereGeometry(size, 12, 12)
       const material = this.themeEngine.createMaterial(index % 6)
       const mesh = new THREE.Mesh(geometry, material)
       mesh.position.copy(pos)
       mesh.userData = { chartData: marker, index }
-      this.chartGroup.add(mesh)
+      this.globe!.add(mesh)
       this.interactionManager.addInteractive(mesh)
     })
   }
 
-  protected rebuildWithCurrentData(): void { this.clearChart(); this.createGlobe(); if (this.currentData.length) this.buildChart(this.currentData) }
+  protected rebuildWithCurrentData(): void {
+    this.clearChart()
+    this.globe = null
+    this.createGlobe()
+    if (this.currentData) this.buildChart(this.currentData)
+  }
 }

@@ -92,7 +92,7 @@ export class Map3D {
   }
 
   private emit(event: MapEvent, payload: any): void {
-    this.handlers.get(event)?.forEach((h) => h(payload))
+    this.handlers.get(event)?.forEach((h: (e: any) => void) => h(payload))
   }
 
   setCenter(center: [number, number]): void {
@@ -188,7 +188,7 @@ export class Map3D {
     const positions = points.map((p) => this.latLngToPosition(p.lat, p.lng))
     this.trackPlayer.setTrack(positions)
     this.mapGroup.add(this.trackPlayer.getGroup())
-    this.trackUnsub = this.sceneManager.onRender((delta) => this.trackPlayer?.update(delta))
+    this.trackUnsub = this.sceneManager.onRender((delta: number) => this.trackPlayer?.update(delta))
     this.trackPlayer.play()
     return this.trackPlayer
   }

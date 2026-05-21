@@ -1,11 +1,14 @@
 import * as THREE from 'three'
 import { BaseChart3D, ChartOptions } from '../base/BaseChart3D'
+import { TableRow } from './types'
 
-export interface TableRow { [key: string]: string | number }
-export interface FlipCardTable3DOptions extends ChartOptions { columns?: string[]; cardWidth?: number; cardHeight?: number }
+export interface FlipCardTable3DOptions extends ChartOptions<TableRow[]> {
+  columns?: string[]
+  cardWidth?: number
+  cardHeight?: number
+}
 
-export class FlipCardTable3D extends BaseChart3D {
-  private currentData: TableRow[] = []
+export class FlipCardTable3D extends BaseChart3D<TableRow[]> {
   private tableOptions: FlipCardTable3DOptions
 
   constructor(container: HTMLElement, options: FlipCardTable3DOptions = {}) {
@@ -14,7 +17,7 @@ export class FlipCardTable3D extends BaseChart3D {
   }
 
   protected buildChart(data: TableRow[]): void {
-    this.currentData = data
+    if (!data.length) return
     const cols = this.tableOptions.columns || Object.keys(data[0] || {})
     const cardW = this.tableOptions.cardWidth || 1.5
     const cardH = this.tableOptions.cardHeight || 1
@@ -26,8 +29,8 @@ export class FlipCardTable3D extends BaseChart3D {
         const material = this.themeEngine.createMaterial(colIdx)
         const mesh = new THREE.Mesh(geometry, material)
         mesh.position.set(
-          (colIdx - cols.length / 2) * (cardW + gap),
-          -(rowIdx - data.length / 2) * (cardH + gap),
+          (colIdx - cols.length / 2 + 0.5) * (cardW + gap),
+          -(rowIdx - data.length / 2 + 0.5) * (cardH + gap),
           0
         )
         mesh.userData = { chartData: { row, column: col, value: row[col] } }
@@ -37,6 +40,4 @@ export class FlipCardTable3D extends BaseChart3D {
       })
     })
   }
-
-  protected rebuildWithCurrentData(): void { this.clearChart(); if (this.currentData.length) this.buildChart(this.currentData) }
 }

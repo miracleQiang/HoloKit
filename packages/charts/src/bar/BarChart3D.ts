@@ -7,7 +7,7 @@ export interface BarChartData {
   group?: string
 }
 
-export interface BarChart3DOptions extends ChartOptions {
+export interface BarChart3DOptions extends ChartOptions<BarChartData[]> {
   barWidth?: number
   barGap?: number
   mode?: 'grouped' | 'stacked'
@@ -15,20 +15,21 @@ export interface BarChart3DOptions extends ChartOptions {
   yAxis?: { label?: string; max?: number }
 }
 
-export class BarChart3D extends BaseChart3D {
-  private currentData: BarChartData[] = []
+export class BarChart3D extends BaseChart3D<BarChartData[]> {
   private barOptions: BarChart3DOptions
+  private tooltipBound = false
 
   constructor(container: HTMLElement, options: BarChart3DOptions = {}) {
     super(container, options)
     this.barOptions = options
+    this.setupTooltip()
   }
 
   protected buildChart(data: BarChartData[]): void {
-    this.currentData = data
+    if (!data.length) return
     const barWidth = this.barOptions.barWidth || 0.6
     const barGap = this.barOptions.barGap || 0.3
-    const maxValue = this.barOptions.yAxis?.max || Math.max(...data.map((d) => d.value))
+    const maxValue = this.barOptions.yAxis?.max || Math.max(...data.map((d) => d.value)) || 1
 
     const totalWidth = data.length * (barWidth + barGap) - barGap
     const startX = -totalWidth / 2
@@ -37,47 +38,33 @@ export class BarChart3D extends BaseChart3D {
       const height = (item.value / maxValue) * 4
       const geometry = new THREE.BoxGeometry(barWidth, height, barWidth)
       geometry.translate(0, height / 2, 0)
-
       const material = this.themeEngine.createMaterial(index)
       const mesh = new THREE.Mesh(geometry, material)
-
       mesh.position.x = startX + index * (barWidth + barGap) + barWidth / 2
       mesh.position.y = 0
       mesh.userData = { chartData: item, index }
-
       this.chartGroup.add(mesh)
       this.interactionManager.addInteractive(mesh)
       this.animateEntrance(mesh, 1, index)
     })
 
-    this.addGrid(totalWidth, maxValue)
-    this.setupTooltip()
+    this.addGrid(totalWidth)
   }
 
-  protected rebuildWithCurrentData(): void {
-    this.clearChart()
-    if (this.currentData.length > 0) {
-      this.buildChart(this.currentData)
-    }
-  }
-
-  private addGrid(width: number, maxValue: number): void {
-    const theme = this.themeEngine.getTheme()
-    const gridColor = new THREE.Color(theme.colors.grid)
-    const material = new THREE.LineBasicMaterial({ color: gridColor, transparent: true, opacity: 0.5 })
-
+  private addGrid(width: number): void {
+    const material = this.themeEngine.createGridMaterial()
     const halfWidth = width / 2 + 0.5
     for (let i = 0; i <= 4; i++) {
-      const y = i
-      const points = [new THREE.Vector3(-halfWidth, y, 0), new THREE.Vector3(halfWidth, y, 0)]
+      const points = [new THREE.Vector3(-halfWidth, i, 0), new THREE.Vector3(halfWidth, i, 0)]
       const geometry = new THREE.BufferGeometry().setFromPoints(points)
-      const line = new THREE.Line(geometry, material)
-      this.chartGroup.add(line)
+      this.chartGroup.add(new THREE.Line(geometry, material))
     }
   }
 
   private setupTooltip(): void {
-    this.interactionManager.on('hover', (e) => {
+    if (this.tooltipBound) return
+    this.tooltipBound = true
+    this.interactionManager.on('hover', (e: any) => {
       const data = e.object.userData?.chartData as BarChartData
       if (data) {
         const formatter = this.options.tooltip?.formatter
@@ -85,8 +72,6 @@ export class BarChart3D extends BaseChart3D {
         this.tooltip.show(content, e.originalEvent.offsetX, e.originalEvent.offsetY)
       }
     })
-    this.interactionManager.on('unhover', () => {
-      this.tooltip.hide()
-    })
+    this.interactionManager.on('unhover', () => this.tooltip.hide())
   }
 }

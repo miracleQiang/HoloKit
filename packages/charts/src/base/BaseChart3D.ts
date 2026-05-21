@@ -104,7 +104,7 @@ export abstract class BaseChart3D<TData = any[]> {
   }
 
   on(event: 'hover' | 'unhover' | 'click', handler: (data: any) => void): () => void {
-    return this.interactionManager.on(event, (e) => {
+    return this.interactionManager.on(event, (e: any) => {
       const chartData = e.object.userData?.chartData
       if (chartData) handler(chartData)
     })
@@ -155,7 +155,7 @@ export abstract class BaseChart3D<TData = any[]> {
       duration,
       easing,
       delay: index * 50,
-      onUpdate: (progress) => {
+      onUpdate: (progress: number) => {
         mesh.scale.y = targetScale * progress
       },
     })
