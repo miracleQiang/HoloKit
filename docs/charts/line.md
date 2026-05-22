@@ -68,6 +68,9 @@ const chart = new LineChart3D(document.getElementById('container'), {
 | smooth | boolean | false | 是否平滑曲线 |
 | showPoints | boolean | true | 是否显示数据点 |
 | pointSize | number | 0.08 | 数据点大小 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -76,6 +79,9 @@ const chart = new LineChart3D(document.getElementById('container'), {
 | setData(data) | 更新数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 | on('hover', handler) | 悬停数据点 |
 
 ## 数据格式

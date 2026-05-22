@@ -1,5 +1,9 @@
 # 3D 热力图
 
+
+<ClientOnly>
+  <HeatmapChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript
@@ -62,6 +66,9 @@ const chart = new HeatmapChart3D(document.getElementById('container'), {
 | heightScale | number | 1 | 高度缩放系数 |
 | colorRange | string[] | 主题色板 | 颜色映射数组（低→高） |
 | opacity | number | 0.9 | 透明度 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -70,6 +77,9 @@ const chart = new HeatmapChart3D(document.getElementById('container'), {
 | setData(data) | 更新热力数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 | on('hover', handler) | 悬停单元格，返回 x/z/value |
 
 ## 数据格式

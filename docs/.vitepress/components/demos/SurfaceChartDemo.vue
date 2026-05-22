@@ -1,5 +1,5 @@
 <template>
-  <DemoContainer title="3D 散点图">
+  <DemoContainer title="3D 曲面图">
     <div ref="el" class="demo-3d"></div>
   </DemoContainer>
 </template>
@@ -15,40 +15,58 @@ const el = ref<HTMLDivElement | null>(null)
 const { current } = useDemoTheme()
 let renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera
 let controls: OrbitControls, animId: number | null = null, ro: ResizeObserver | null = null
-let chartGroup: THREE.Group, ambient: THREE.AmbientLight
+let chartGroup: THREE.Group, ambient: THREE.AmbientLight, dirLight: THREE.DirectionalLight
 
-const points = Array.from({ length: 60 }, () => ({
-  g: Math.floor(Math.random() * 3),
-  x: (Math.random() - 0.5) * 4, y: (Math.random() - 0.5) * 4, z: (Math.random() - 0.5) * 4,
-  s: 0.06 + Math.random() * 0.1,
-}))
+const SIZE = 30
+const heights: number[] = []
+for (let r = 0; r < SIZE; r++) {
+  for (let c = 0; c < SIZE; c++) {
+    const x = (c / (SIZE - 1) - 0.5) * 6
+    const z = (r / (SIZE - 1) - 0.5) * 6
+    heights.push(Math.sin(x) * Math.cos(z) * 0.8)
+  }
+}
 
-function buildPoints() {
+function buildSurface() {
   while (chartGroup.children.length) {
     const c = chartGroup.children[0] as any
     chartGroup.remove(c); c.geometry?.dispose?.(); c.material?.dispose?.()
   }
   const t = current.value
-  points.forEach(p => {
-    const color = t.colors[p.g]
-    const dot = new THREE.Mesh(
-      new THREE.SphereGeometry(p.s, 12, 12),
-      new THREE.MeshPhysicalMaterial({ color, emissive: color, emissiveIntensity: t.emissiveIntensity })
-    )
-    dot.position.set(p.x, p.y, p.z); chartGroup.add(dot)
+  const geometry = new THREE.PlaneGeometry(6, 6, SIZE - 1, SIZE - 1)
+  const positions = geometry.attributes.position
+  let yMin = Infinity, yMax = -Infinity
+  for (let i = 0; i < heights.length; i++) {
+    if (heights[i] < yMin) yMin = heights[i]
+    if (heights[i] > yMax) yMax = heights[i]
+    positions.setZ(i, heights[i])
+  }
+  geometry.rotateX(-Math.PI / 2)
+  geometry.computeVertexNormals()
+
+  const palette = t.colors.slice(0, 5).map(c => new THREE.Color(c))
+  const colorAttr = new Float32Array(positions.count * 3)
+  for (let i = 0; i < positions.count; i++) {
+    const tt = (positions.getY(i) - yMin) / (yMax - yMin || 1)
+    const idx = Math.min(palette.length - 1, Math.floor(tt * (palette.length - 1)))
+    colorAttr[i * 3] = palette[idx].r; colorAttr[i * 3 + 1] = palette[idx].g; colorAttr[i * 3 + 2] = palette[idx].b
+  }
+  geometry.setAttribute('color', new THREE.BufferAttribute(colorAttr, 3))
+
+  const mat = new THREE.MeshStandardMaterial({
+    vertexColors: true, side: THREE.DoubleSide,
+    metalness: t.metalness, roughness: t.roughness,
+    transparent: t.opacity < 1, opacity: t.opacity,
   })
-  const axisMat = new THREE.LineBasicMaterial({ color: t.grid, transparent: true, opacity: 0.5 })
-  const axes: Array<[number[], number[]]> = [[[-3,0,0],[3,0,0]], [[0,-3,0],[0,3,0]], [[0,0,-3],[0,0,3]]]
-  axes.forEach(([a, b]) => chartGroup.add(new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), axisMat
-  )))
+  chartGroup.add(new THREE.Mesh(geometry, mat))
 }
 
 function applyTheme() {
   const t = current.value
   scene.background = new THREE.Color(t.background)
   ambient.color.set(t.ambient.color); ambient.intensity = t.ambient.intensity
-  buildPoints()
+  dirLight.color.set(t.directional.color); dirLight.intensity = t.directional.intensity
+  buildSurface()
 }
 
 onMounted(async () => {
@@ -56,13 +74,13 @@ onMounted(async () => {
   const c = el.value!; const init = () => {
     const w = c.clientWidth || 600, h = 400
     scene = new THREE.Scene()
-    camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100); camera.position.set(5, 4, 6); camera.lookAt(0, 0, 0)
+    camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100); camera.position.set(5, 5, 5); camera.lookAt(0, 0, 0)
     renderer = new THREE.WebGLRenderer({ antialias: true })
     renderer.setSize(w, h); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     c.appendChild(renderer.domElement)
     controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true
     ambient = new THREE.AmbientLight('#fff', 0.4); scene.add(ambient)
-    const dir = new THREE.DirectionalLight('#fff', 0.7); dir.position.set(5, 8, 5); scene.add(dir)
+    dirLight = new THREE.DirectionalLight('#fff', 0.8); dirLight.position.set(5, 10, 5); scene.add(dirLight)
     chartGroup = new THREE.Group(); scene.add(chartGroup)
     applyTheme()
     const loop = () => { animId = requestAnimationFrame(loop); if (chartGroup) chartGroup.rotation.y += AUTO_ROTATE_SPEED; controls.update(); renderer.render(scene, camera) }; loop()

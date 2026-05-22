@@ -57,6 +57,9 @@ const chart = new RadarChart3D(document.getElementById('container'), {
 | fillOpacity | number | 0.3 | 填充区域透明度 |
 | axisCount | number | auto | 轴数量（自动从数据推断） |
 | showGrid | boolean | true | 是否显示网格环 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -65,6 +68,9 @@ const chart = new RadarChart3D(document.getElementById('container'), {
 | setData(data) | 更新数据（二维数组，每个子数组为一个系列） |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 
 ## 数据格式
 

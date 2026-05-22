@@ -1,5 +1,9 @@
 # 3D 翻转卡片表
 
+
+<ClientOnly>
+  <FlipCardTableDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript
@@ -40,6 +44,9 @@ const chart = new FlipCardTable3D(document.getElementById('container'), {
 | columns | string[] | auto | 列名数组（默认取第一行的 key） |
 | cardWidth | number | 1.5 | 卡片宽度 |
 | cardHeight | number | 1 | 卡片高度 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -48,6 +55,9 @@ const chart = new FlipCardTable3D(document.getElementById('container'), {
 | setData(data) | 更新表格数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 | on('hover', handler) | 悬停卡片，返回行/列/值 |
 
 ## 数据格式

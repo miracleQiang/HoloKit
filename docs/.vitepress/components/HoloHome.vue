@@ -2,6 +2,7 @@
   <div class="holo-home">
     <div ref="canvasContainer" class="hero-canvas"></div>
     <div class="hero-content">
+      <img src="/logo.svg" alt="HoloKit" class="hero-logo" />
       <h1 class="hero-title">HoloKit</h1>
       <p class="hero-subtitle">3D 数据可视化组件库</p>
       <p class="hero-desc">基于 Three.js，支持 Vue2 / Vue3 / React，一行代码创建沉浸式 3D 图表</p>
@@ -99,6 +100,8 @@ onUnmounted(() => { cancelAnimationFrame(animationId); renderer?.dispose() })
 .holo-home { position: relative; overflow: hidden; }
 .hero-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 0; }
 .hero-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 2rem; }
+.hero-logo { width: 140px; height: 140px; margin-bottom: 1.25rem; filter: drop-shadow(0 0 24px rgba(0, 245, 255, 0.45)) drop-shadow(0 0 48px rgba(168, 85, 247, 0.35)); animation: hero-logo-float 6s ease-in-out infinite; }
+@keyframes hero-logo-float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
 .hero-title { font-size: 4rem; font-weight: 800; background: linear-gradient(135deg, #00f5ff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
 .hero-subtitle { font-size: 1.5rem; color: #e2e8f0; margin: 0.5rem 0; }
 .hero-desc { font-size: 1.1rem; color: #94a3b8; max-width: 600px; }

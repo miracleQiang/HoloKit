@@ -72,6 +72,9 @@ const chart = new ScatterChart3D(document.getElementById('container'), {
 | pointSize | number | 0.1 | 基础点大小 |
 | sizeField | string | 'size' | 大小映射字段 |
 | colorField | string | 'group' | 颜色映射字段 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -80,6 +83,9 @@ const chart = new ScatterChart3D(document.getElementById('container'), {
 | setData(data) | 更新数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 | on('hover', handler) | 悬停数据点，返回 x/y/z 坐标 |
 
 ## 数据格式

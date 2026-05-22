@@ -13,12 +13,14 @@ export class GlobeChart3D extends BaseChart3D<GlobeMarker[]> {
   private globe: THREE.Mesh | null = null
 
   constructor(container: HTMLElement, options: GlobeChart3DOptions = {}) {
-    super(container, { ...options, camera: { position: [0, 0, 5], ...options.camera } })
+    super(container, {
+      ...options,
+      camera: { position: [0, 0, 5], ...options.camera },
+      autoRotate: options.autoRotate !== false,
+      rotateSpeed: options.rotateSpeed ?? 0.002,
+    })
     this.globeOptions = options
     this.createGlobe()
-    if (options.autoRotate !== false) {
-      this.addRenderHook(() => { if (this.globe) this.globe.rotation.y += 0.002 })
-    }
   }
 
   private createGlobe(): void {

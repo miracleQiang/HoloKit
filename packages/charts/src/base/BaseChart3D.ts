@@ -28,6 +28,9 @@ export interface ChartOptions<TData = any[]> {
     position?: [number, number, number]
     enableControls?: boolean
   }
+  autoRotate?: boolean
+  rotateSpeed?: number
+  position?: { x?: number; y?: number; z?: number }
 }
 
 export abstract class BaseChart3D<TData = any[]> {
@@ -42,6 +45,8 @@ export abstract class BaseChart3D<TData = any[]> {
   protected chartGroup: THREE.Group
   protected currentData: TData | null = null
   protected disposed = false
+  protected autoRotate = false
+  protected rotateSpeed = 0.005
   private renderUnsubs: Array<() => void> = []
 
   constructor(container: HTMLElement, options: ChartOptions<TData> = {}) {
@@ -61,6 +66,7 @@ export abstract class BaseChart3D<TData = any[]> {
     this.tooltip = new Tooltip(container)
 
     this.chartGroup = new THREE.Group()
+    this.applyPosition(options.position)
     this.sceneManager.scene.add(this.chartGroup)
 
     if (options.data) {
@@ -68,7 +74,30 @@ export abstract class BaseChart3D<TData = any[]> {
       this.buildChart(options.data)
     }
 
+    this.autoRotate = options.autoRotate === true
+    this.rotateSpeed = options.rotateSpeed ?? 0.005
+    this.addRenderHook(() => {
+      if (this.autoRotate && this.chartGroup) {
+        this.chartGroup.rotation.y += this.rotateSpeed
+      }
+    })
+
     this.sceneManager.start()
+  }
+
+  setAutoRotate(enabled: boolean): void { this.autoRotate = enabled }
+  setRotateSpeed(speed: number): void { this.rotateSpeed = speed }
+  isAutoRotating(): boolean { return this.autoRotate }
+
+  setPosition(position: { x?: number; y?: number; z?: number }): void {
+    this.applyPosition(position)
+  }
+
+  private applyPosition(position?: { x?: number; y?: number; z?: number }): void {
+    if (!position) return
+    if (position.x !== undefined) this.chartGroup.position.x = position.x
+    if (position.y !== undefined) this.chartGroup.position.y = position.y
+    if (position.z !== undefined) this.chartGroup.position.z = position.z
   }
 
   setData(data: TData): void {

@@ -1,5 +1,9 @@
 # 3D 曲面图
 
+
+<ClientOnly>
+  <SurfaceChartDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript
@@ -70,6 +74,9 @@ const chart = new SurfaceChart3D(document.getElementById('container'), {
 | wireframe | boolean | false | 是否显示线框 |
 | colorMap | string[] | 主题色板 | 高度颜色映射数组 |
 | opacity | number | 1 | 曲面透明度 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -78,6 +85,9 @@ const chart = new SurfaceChart3D(document.getElementById('container'), {
 | setData(data) | 更新曲面数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 
 ## 数据格式
 

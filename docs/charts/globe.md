@@ -47,6 +47,8 @@ const chart = new GlobeChart3D(document.getElementById('container'), {
 |------|------|--------|------|
 | radius | number | 2 | 地球半径 |
 | autoRotate | boolean | true | 是否自动旋转 |
+| rotateSpeed | number | 0.002 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 | markerSize | number | 0.05 | 标注点基础大小 |
 
 ## API
@@ -56,6 +58,9 @@ const chart = new GlobeChart3D(document.getElementById('container'), {
 | setData(data) | 更新标注点数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 | on('hover', handler) | 悬停标注点 |
 
 ## 数据格式

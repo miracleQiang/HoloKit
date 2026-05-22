@@ -4,96 +4,88 @@
   </DemoContainer>
 </template>
 
-<script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import DemoContainer from '../DemoContainer.vue'
+import { useDemoTheme, AUTO_ROTATE_SPEED } from '../demo-theme'
 
-const el = ref(null)
-let renderer, scene, camera, controls, animId, ro
+const el = ref<HTMLDivElement | null>(null)
+const { current } = useDemoTheme()
+let renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera
+let controls: OrbitControls, animId: number | null = null, ro: ResizeObserver | null = null
+let chartGroup: THREE.Group, ambient: THREE.AmbientLight, dirLight: THREE.DirectionalLight
+
+const data = [335, 310, 234, 135, 548]
+
+function buildPie() {
+  while (chartGroup.children.length) {
+    const c = chartGroup.children[0] as any
+    chartGroup.remove(c); c.geometry?.dispose?.(); c.material?.dispose?.()
+  }
+  const t = current.value
+  const total = data.reduce((s, v) => s + v, 0)
+  let startAngle = 0
+  data.forEach((value, i) => {
+    const angle = (value / total) * Math.PI * 2
+    const shape = new THREE.Shape()
+    const segs = Math.max(16, Math.floor(angle * 24))
+    shape.moveTo(0, 0)
+    for (let j = 0; j <= segs; j++) {
+      const a = startAngle + (j / segs) * angle
+      shape.lineTo(Math.cos(a) * 2, Math.sin(a) * 2)
+    }
+    shape.lineTo(0, 0)
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.6, bevelEnabled: false })
+    geo.rotateX(-Math.PI / 2)
+    const color = t.colors[i % t.colors.length]
+    const mat = new THREE.MeshPhysicalMaterial({
+      color, metalness: t.metalness, roughness: t.roughness,
+      emissive: color, emissiveIntensity: t.emissiveIntensity,
+      transparent: t.opacity < 1, opacity: t.opacity,
+    })
+    const mesh = new THREE.Mesh(geo, mat)
+    const mid = startAngle + angle / 2
+    mesh.position.x = Math.cos(mid) * 0.1; mesh.position.z = -Math.sin(mid) * 0.1
+    chartGroup.add(mesh)
+    startAngle += angle
+  })
+}
+
+function applyTheme() {
+  const t = current.value
+  scene.background = new THREE.Color(t.background)
+  ambient.color.set(t.ambient.color); ambient.intensity = t.ambient.intensity
+  dirLight.color.set(t.directional.color); dirLight.intensity = t.directional.intensity
+  buildPie()
+}
 
 onMounted(async () => {
   await nextTick()
-  const container = el.value
-  if (!container) return
-
-  const init = () => {
-    const w = container.clientWidth || 600, h = container.clientHeight || 400
+  const c = el.value!; const init = () => {
+    const w = c.clientWidth || 600, h = 400
     scene = new THREE.Scene()
-    scene.background = new THREE.Color('#0a0e1a')
-    camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100)
-    camera.position.set(0, 5, 5)
-    camera.lookAt(0, 0, 0)
+    camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100); camera.position.set(0, 5, 5); camera.lookAt(0, 0, 0)
     renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setSize(w, h)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    container.appendChild(renderer.domElement)
-    controls = new OrbitControls(camera, renderer.domElement)
-    controls.enableDamping = true
-    scene.add(new THREE.AmbientLight('#ffffff', 0.5))
-    const dir = new THREE.DirectionalLight('#ffffff', 0.8)
-    dir.position.set(3, 8, 5)
-    scene.add(dir)
-
-    const data = [
-      { value: 335, color: '#00f5ff' },
-      { value: 310, color: '#bf5af2' },
-      { value: 234, color: '#ff375f' },
-      { value: 135, color: '#30d158' },
-      { value: 548, color: '#ffd60a' },
-    ]
-    const total = data.reduce((s, d) => s + d.value, 0)
-    let startAngle = 0
-    data.forEach((item) => {
-      const angle = (item.value / total) * Math.PI * 2
-      const shape = new THREE.Shape()
-      const segments = Math.max(16, Math.floor(angle * 24))
-      shape.moveTo(0, 0)
-      for (let j = 0; j <= segments; j++) {
-        const a = startAngle + (j / segments) * angle
-        shape.lineTo(Math.cos(a) * 2, Math.sin(a) * 2)
-      }
-      shape.lineTo(0, 0)
-      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.6, bevelEnabled: false })
-      geo.rotateX(-Math.PI / 2)
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: item.color, metalness: 0.2, roughness: 0.5,
-        emissive: item.color, emissiveIntensity: 0.1,
-      })
-      const mesh = new THREE.Mesh(geo, mat)
-      const midAngle = startAngle + angle / 2
-      mesh.position.x = Math.cos(midAngle) * 0.1
-      mesh.position.z = -Math.sin(midAngle) * 0.1
-      scene.add(mesh)
-      startAngle += angle
-    })
-
-    const loop = () => {
-      animId = requestAnimationFrame(loop)
-      controls.update()
-      scene.rotation.y += 0.003
-      renderer.render(scene, camera)
-    }
-    loop()
-
+    renderer.setSize(w, h); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    c.appendChild(renderer.domElement)
+    controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true
+    ambient = new THREE.AmbientLight('#fff', 0.5); scene.add(ambient)
+    dirLight = new THREE.DirectionalLight('#fff', 0.8); dirLight.position.set(3, 8, 5); scene.add(dirLight)
+    chartGroup = new THREE.Group(); scene.add(chartGroup)
+    applyTheme()
+    const loop = () => { animId = requestAnimationFrame(loop); if (chartGroup) chartGroup.rotation.y += AUTO_ROTATE_SPEED; controls.update(); renderer.render(scene, camera) }; loop()
     ro = new ResizeObserver(() => {
-      if (!renderer || !camera) return
-      const nw = container.clientWidth, nh = container.clientHeight
-      if (nw && nh) {
-        renderer.setSize(nw, nh); camera.aspect = nw / nh; camera.updateProjectionMatrix()
-      }
-    })
-    ro.observe(container)
+      const nw = c.clientWidth, nh = c.clientHeight
+      if (nw && nh) { renderer.setSize(nw, nh); camera.aspect = nw / nh; camera.updateProjectionMatrix() }
+    }); ro.observe(c)
   }
-
-  if (container.clientWidth > 0) init()
-  else requestAnimationFrame(init)
+  c.clientWidth > 0 ? init() : requestAnimationFrame(init)
 })
 
-onUnmounted(() => { cancelAnimationFrame(animId); ro?.disconnect(); renderer?.dispose() })
+watch(current, () => scene && applyTheme())
+onUnmounted(() => { if (animId) cancelAnimationFrame(animId); ro?.disconnect(); renderer?.dispose() })
 </script>
 
-<style scoped>
-.demo-3d { width: 100%; height: 400px; }
-</style>
+<style scoped>.demo-3d { width: 100%; height: 400px; }</style>

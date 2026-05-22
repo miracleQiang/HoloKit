@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="HoloKit">
+  <defs>
+    <linearGradient id="hk-top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7df9ff"/>
+      <stop offset="100%" stop-color="#00f5ff"/>
+    </linearGradient>
+    <linearGradient id="hk-right" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="hk-left" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <linearGradient id="hk-edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00f5ff"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="hk-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#hk-glow)">
+    <path d="M20.7 39 L64 64 L64 114 L20.7 89 Z" fill="url(#hk-left)" fill-opacity="0.95"/>
+    <path d="M107.3 39 L107.3 89 L64 114 L64 64 Z" fill="url(#hk-right)" fill-opacity="0.95"/>
+    <path d="M64 14 L107.3 39 L64 64 L20.7 39 Z" fill="url(#hk-top)"/>
+
+    <path d="M64 14 L64 64 M20.7 39 L64 64 M107.3 39 L64 64 M64 64 L64 114"
+          stroke="#ffffff" stroke-width="0.9" stroke-opacity="0.55" stroke-linecap="round"/>
+
+    <path d="M64 14 L107.3 39 L107.3 89 L64 114 L20.7 89 L20.7 39 Z"
+          stroke="url(#hk-edge)" stroke-width="1.4" stroke-opacity="0.9" fill="none"/>
+  </g>
+</svg>

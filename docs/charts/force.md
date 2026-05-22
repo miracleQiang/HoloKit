@@ -1,5 +1,9 @@
 # 3D 力导向关系图
 
+
+<ClientOnly>
+  <ForceGraphDemo />
+</ClientOnly>
 ## 基础用法
 
 ```javascript
@@ -62,6 +66,9 @@ const chart = new ForceGraph3D(document.getElementById('container'), {
 | linkDistance | number | 2 | 连线理想长度 |
 | gravity | number | 0.05 | 引力强度 |
 | iterations | number | 100 | 力模拟迭代次数 |
+| autoRotate | boolean | false | 是否自动旋转图表 |
+| rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
+| position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |
 
 ## API
 
@@ -70,6 +77,9 @@ const chart = new ForceGraph3D(document.getElementById('container'), {
 | setData(data) | 更新图数据 |
 | setTheme(theme) | 切换主题 |
 | dispose() | 销毁实例 |
+| setAutoRotate(enabled) | 切换自动旋转 |
+| setRotateSpeed(speed) | 设置旋转速率 |
+| setPosition(position) | 调整图形位置 |
 | on('hover', handler) | 悬停节点 |
 | on('click', handler) | 点击节点 |
 
