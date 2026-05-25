@@ -1,0 +1,7 @@
+services:
+  holokit-docs:
+    build: .
+    container_name: holokit
+    ports:
+      - "5000:80"
+    restart: always

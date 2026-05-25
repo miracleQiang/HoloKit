@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/holokit/',
   title: 'HoloKit',
   description: '3D 数据可视化组件库',
   head: [
