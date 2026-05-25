@@ -69,6 +69,6 @@ export class GlobeChart3D extends BaseChart3D<GlobeMarker[]> {
     this.clearChart()
     this.globe = null
     this.createGlobe()
-    if (this.currentData) this.buildChart(this.currentData)
+    if (this.currentData) this.buildOrEmpty(this.currentData)
   }
 }

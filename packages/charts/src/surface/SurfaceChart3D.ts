@@ -46,7 +46,7 @@ export class SurfaceChart3D extends BaseChart3D<SurfaceChartData[]> {
     geometry.rotateX(-Math.PI / 2)
     geometry.computeVertexNormals()
 
-    const colors = (this.surfaceOptions.colorMap ?? this.themeEngine.getTheme().colors.primary).map((c: string) => new THREE.Color(c))
+    const colors = (this.surfaceOptions.colorMap ?? this.getColors()).map((c: string) => new THREE.Color(c))
     const colorAttr = new Float32Array(positions.count * 3)
     for (let i = 0; i < positions.count; i++) {
       const y = positions.getY(i)

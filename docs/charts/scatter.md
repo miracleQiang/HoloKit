@@ -65,6 +65,20 @@ const chart = new ScatterChart3D(document.getElementById('container'), {
 })
 ```
 
+## 维度信息（X / Y / Z 轴标题）
+
+通过 `xAxis.label`、`yAxis.label`、`zAxis.label` 标注统计维度：
+
+```javascript
+const chart = new ScatterChart3D(el, {
+  data: scatterData,
+  xAxis: { label: '温度 (°C)' },
+  yAxis: { label: '湿度 (%)', ticks: 5, formatter: (v) => `${v}%` },
+  zAxis: { label: '气压 (hPa)' },
+  unit: '',
+})
+```
+
 ## 配置项
 
 | 参数 | 类型 | 默认值 | 说明 |
@@ -72,6 +86,17 @@ const chart = new ScatterChart3D(document.getElementById('container'), {
 | pointSize | number | 0.1 | 基础点大小 |
 | sizeField | string | 'size' | 大小映射字段 |
 | colorField | string | 'group' | 颜色映射字段 |
+| xAxis.label | string | — | X 轴标题 |
+| xAxis.max | number | 自动 | X 轴最大值 |
+| yAxis.label | string | — | Y 轴标题 |
+| yAxis.max | number | 自动 | Y 轴最大值 |
+| yAxis.ticks | number | 4 | Y 轴刻度数 |
+| yAxis.showTicks | boolean | true | 是否显示 Y 轴刻度值 |
+| yAxis.formatter | (v) => string | — | Y 轴刻度格式化 |
+| zAxis.label | string | — | Z 轴标题 |
+| zAxis.max | number | 自动 | Z 轴最大值 |
+| unit | string | '' | 数值单位 |
+| showValues | boolean | false | 是否显示数值标签 |
 | autoRotate | boolean | false | 是否自动旋转图表 |
 | rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
 | position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |

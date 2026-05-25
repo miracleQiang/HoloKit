@@ -58,6 +58,20 @@ const chart = new HeatmapChart3D(document.getElementById('container'), {
 })
 ```
 
+## 维度信息（X / Y / Z 轴标题）
+
+通过 `xAxis.label`、`yAxis.label`、`zAxis.label` 标注统计维度：
+
+```javascript
+const chart = new HeatmapChart3D(el, {
+  data: heatData,
+  xAxis: { label: '行' },
+  yAxis: { label: '温度', ticks: 5, formatter: (v) => `${v}°C` },
+  zAxis: { label: '列' },
+  unit: '°C',
+})
+```
+
 ## 配置项
 
 | 参数 | 类型 | 默认值 | 说明 |
@@ -66,6 +80,15 @@ const chart = new HeatmapChart3D(document.getElementById('container'), {
 | heightScale | number | 1 | 高度缩放系数 |
 | colorRange | string[] | 主题色板 | 颜色映射数组（低→高） |
 | opacity | number | 0.9 | 透明度 |
+| xAxis.label | string | — | X 轴标题 |
+| yAxis.label | string | — | Y 轴标题（数值维度名） |
+| yAxis.max | number | 自动 | Y 轴最大值 |
+| yAxis.ticks | number | 4 | Y 轴刻度数 |
+| yAxis.showTicks | boolean | true | 是否显示 Y 轴刻度值 |
+| yAxis.formatter | (v) => string | — | Y 轴刻度格式化 |
+| zAxis.label | string | — | Z 轴标题 |
+| unit | string | '' | 数值单位 |
+| showValues | boolean | false | 是否显示数值标签 |
 | autoRotate | boolean | false | 是否自动旋转图表 |
 | rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
 | position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |

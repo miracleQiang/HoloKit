@@ -79,6 +79,21 @@ const chart = new BarChart3D(el, {
 })
 ```
 
+## 图例 / 空态
+
+数据带 `group` 字段时自动生成分组图例。空数据自动显示占位文案：
+
+```javascript
+const chart = new BarChart3D(el, {
+  data: [],
+  emptyText: '加载中...',
+  legend: { position: 'top-left' },
+})
+chart.setData(salesData) // 自动隐藏空态、推导图例
+```
+
+> 通用图例 / 空态 / 响应式能力详见[快速开始 - 通用能力](/guide/getting-started#通用能力)
+
 ## 配置项
 
 | 参数 | 类型 | 默认值 | 说明 |
@@ -86,6 +101,8 @@ const chart = new BarChart3D(el, {
 | barWidth | number | 0.6 | 柱体宽度 |
 | barGap | number | 0.3 | 柱体间距 |
 | mode | 'grouped' \| 'stacked' | 'grouped' | 分组 / 堆叠模式 |
+| colors | string[] | 主题色板 | 自定义柱体颜色数组 |
+| textColor | string | 主题文字色 | 自定义文字颜色（轴标题、刻度、数值标签） |
 | xAxis.label | string | — | X 轴标题（统计维度名） |
 | xAxis.showTicks | boolean | true | 是否显示 X 轴类别标签 |
 | yAxis.label | string | — | Y 轴标题（数值维度名） |
@@ -96,6 +113,8 @@ const chart = new BarChart3D(el, {
 | showValues | boolean | true | 是否在柱顶显示数值 |
 | valueFormatter | (item) => string | — | 自定义柱顶数值格式化 |
 | unit | string | '' | 数值单位（拼接到默认 formatter 后） |
+| markLine | MarkLineItem[] | — | 水平标注线（均值线、目标线等） |
+| onDrillDown | (item) => void | — | 点击柱体触发的下钻回调 |
 | autoRotate | boolean | false | 是否自动旋转图表 |
 | rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
 | position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |

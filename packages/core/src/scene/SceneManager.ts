@@ -48,6 +48,7 @@ export class SceneManager {
     this.renderer = new THREE.WebGLRenderer({
       antialias: opts.antialias,
       alpha: opts.alpha,
+      preserveDrawingBuffer: true,
     })
     this.renderer.setSize(width, height)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))

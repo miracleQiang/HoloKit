@@ -59,6 +59,20 @@ const chart = new LineChart3D(document.getElementById('container'), {
 })
 ```
 
+## 维度信息（X / Y 轴标题）
+
+通过 `xAxis.label` 和 `yAxis.label` 标注统计维度：
+
+```javascript
+const chart = new LineChart3D(el, {
+  data: salesData,
+  xAxis: { label: '月份' },
+  yAxis: { label: '销售额', formatter: (v) => `${v}万` },
+  unit: '万',
+  showValues: true,
+})
+```
+
 ## 配置项
 
 | 参数 | 类型 | 默认值 | 说明 |
@@ -68,6 +82,16 @@ const chart = new LineChart3D(document.getElementById('container'), {
 | smooth | boolean | false | 是否平滑曲线 |
 | showPoints | boolean | true | 是否显示数据点 |
 | pointSize | number | 0.08 | 数据点大小 |
+| xAxis.label | string | — | X 轴标题（统计维度名） |
+| xAxis.showTicks | boolean | true | 是否显示 X 轴类别标签 |
+| yAxis.label | string | — | Y 轴标题（数值维度名） |
+| yAxis.max | number | 自动 | Y 轴最大值 |
+| yAxis.ticks | number | 4 | Y 轴刻度数 |
+| yAxis.showTicks | boolean | true | 是否显示 Y 轴刻度值 |
+| yAxis.formatter | (v) => string | — | Y 轴刻度格式化 |
+| showValues | boolean | false | 是否在数据点上方显示数值 |
+| valueFormatter | (item) => string | — | 自定义数值格式化 |
+| unit | string | '' | 数值单位（拼接到默认 formatter 后） |
 | autoRotate | boolean | false | 是否自动旋转图表 |
 | rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
 | position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |

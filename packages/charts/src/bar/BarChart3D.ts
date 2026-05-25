@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { BaseChart3D, ChartOptions } from '../base/BaseChart3D'
 import { makeTextSprite } from '../base/textSprite'
+import { MarkLineItem, drawMarkLines } from '../base/axis'
 
 export interface BarChartData {
   label: string
@@ -26,6 +27,8 @@ export interface BarChart3DOptions extends ChartOptions<BarChartData[]> {
   showValues?: boolean
   valueFormatter?: (item: BarChartData) => string
   unit?: string
+  markLine?: MarkLineItem[]
+  onDrillDown?: (item: BarChartData) => void
 }
 
 export class BarChart3D extends BaseChart3D<BarChartData[]> {
@@ -55,7 +58,7 @@ export class BarChart3D extends BaseChart3D<BarChartData[]> {
     const startX = -totalWidth / 2
     const chartHeight = 4
     const theme = this.themeEngine.getTheme()
-    const labelColor = theme.colors.text
+    const labelColor = this.getTextColor()
 
     data.forEach((item, index) => {
       const height = (item.value / maxValue) * chartHeight
@@ -86,6 +89,17 @@ export class BarChart3D extends BaseChart3D<BarChartData[]> {
     if (showYTicks) this.addYAxisTicks(totalWidth, chartHeight, maxValue, yTicks, yFmt, labelColor)
     if (this.barOptions.xAxis?.label) this.addAxisTitle(this.barOptions.xAxis.label, 'x', totalWidth, chartHeight, labelColor)
     if (this.barOptions.yAxis?.label) this.addAxisTitle(this.barOptions.yAxis.label, 'y', totalWidth, chartHeight, labelColor)
+
+    const groups = [...new Set(data.map((d) => d.group).filter((g): g is string => !!g))]
+    if (groups.length > 1) {
+      const palette = this.getColors()
+      this.legend.setItems(groups.map((g, i) => ({ label: g, color: palette[i % palette.length] })))
+      this.legend.show()
+    }
+
+    if (this.barOptions.markLine?.length) {
+      drawMarkLines({ group: this.chartGroup, dimensions: { width: totalWidth, height: chartHeight }, maxValue, lines: this.barOptions.markLine, defaultColor: this.getTextColor() })
+    }
   }
 
   private addGrid(width: number, chartHeight: number): void {
@@ -144,5 +158,9 @@ export class BarChart3D extends BaseChart3D<BarChartData[]> {
       }
     })
     this.interactionManager.on('unhover', () => this.tooltip.hide())
+    this.interactionManager.on('click', (e: any) => {
+      const data = e.object.userData?.chartData as BarChartData
+      if (data && this.barOptions.onDrillDown) this.barOptions.onDrillDown(data)
+    })
   }
 }

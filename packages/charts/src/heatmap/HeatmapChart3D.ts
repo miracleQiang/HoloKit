@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { BaseChart3D, ChartOptions } from '../base/BaseChart3D'
+import { SingleAxisOptions, drawGrid, drawAxisTicks, drawAxisTitle } from '../base/axis'
 
 export interface HeatmapChartData { x: number; z: number; value: number }
 export interface HeatmapChart3DOptions extends ChartOptions<HeatmapChartData[]> {
@@ -7,6 +8,11 @@ export interface HeatmapChart3DOptions extends ChartOptions<HeatmapChartData[]> 
   heightScale?: number
   colorRange?: string[]
   opacity?: number
+  xAxis?: SingleAxisOptions
+  yAxis?: SingleAxisOptions
+  zAxis?: SingleAxisOptions
+  unit?: string
+  showValues?: boolean
 }
 
 export class HeatmapChart3D extends BaseChart3D<HeatmapChartData[]> {
@@ -45,5 +51,22 @@ export class HeatmapChart3D extends BaseChart3D<HeatmapChartData[]> {
       this.chartGroup.add(mesh)
       this.interactionManager.addInteractive(mesh)
     })
+
+    const theme = this.themeEngine.getTheme()
+    const labelColor = this.getTextColor()
+    const unit = this.heatmapOptions.unit || ''
+    const maxX = Math.max(...data.map((d) => d.x)) * gridSize
+    const maxZ = Math.max(...data.map((d) => d.z)) * gridSize
+    const maxH = heightScale * 2
+    const dims = { width: maxX + gridSize, height: maxH, depth: maxZ + gridSize }
+    const yTicks = this.heatmapOptions.yAxis?.ticks ?? 4
+    const yFmt = this.heatmapOptions.yAxis?.formatter || ((v: number) => `${Math.round(v * 100) / 100}${unit}`)
+
+    if (this.heatmapOptions.yAxis?.showTicks !== false) {
+      drawAxisTicks({ group: this.chartGroup, axis: 'y', dimensions: dims, maxValue: max, ticks: yTicks, formatter: yFmt, color: labelColor })
+    }
+    if (this.heatmapOptions.xAxis?.label) drawAxisTitle({ group: this.chartGroup, text: this.heatmapOptions.xAxis.label, axis: 'x', dimensions: dims, color: labelColor })
+    if (this.heatmapOptions.yAxis?.label) drawAxisTitle({ group: this.chartGroup, text: this.heatmapOptions.yAxis.label, axis: 'y', dimensions: dims, color: labelColor })
+    if (this.heatmapOptions.zAxis?.label) drawAxisTitle({ group: this.chartGroup, text: this.heatmapOptions.zAxis.label, axis: 'z', dimensions: dims, color: labelColor })
   }
 }

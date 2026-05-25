@@ -7,8 +7,10 @@ import {
   InteractionManager,
   ResponsiveManager,
   Tooltip,
+  Legend,
   HoloKitTheme,
 } from '@holokit/core'
+import type { LegendItem, LegendOptions } from '@holokit/core'
 
 export interface ChartOptions<TData = any[]> {
   theme?: string | HoloKitTheme
@@ -31,6 +33,10 @@ export interface ChartOptions<TData = any[]> {
   autoRotate?: boolean
   rotateSpeed?: number
   position?: { x?: number; y?: number; z?: number }
+  legend?: LegendOptions & { items?: LegendItem[] }
+  emptyText?: string
+  colors?: string[]
+  textColor?: string
 }
 
 export abstract class BaseChart3D<TData = any[]> {
@@ -40,6 +46,7 @@ export abstract class BaseChart3D<TData = any[]> {
   protected interactionManager: InteractionManager
   protected responsiveManager: ResponsiveManager
   protected tooltip: Tooltip
+  protected legend: Legend
   protected container: HTMLElement
   protected options: ChartOptions<TData>
   protected chartGroup: THREE.Group
@@ -47,6 +54,7 @@ export abstract class BaseChart3D<TData = any[]> {
   protected disposed = false
   protected autoRotate = false
   protected rotateSpeed = 0.005
+  protected emptyEl: HTMLDivElement | null = null
   private renderUnsubs: Array<() => void> = []
 
   constructor(container: HTMLElement, options: ChartOptions<TData> = {}) {
@@ -64,6 +72,12 @@ export abstract class BaseChart3D<TData = any[]> {
     this.interactionManager = new InteractionManager(this.sceneManager)
     this.responsiveManager = new ResponsiveManager(this.sceneManager, container)
     this.tooltip = new Tooltip(container)
+    const hasInitialLegendItems = !!options.legend?.items?.length
+    this.legend = new Legend(container, { show: false, ...options.legend })
+    if (hasInitialLegendItems) {
+      this.legend.setItems(options.legend!.items!)
+      if (options.legend?.show !== false) this.legend.show()
+    }
 
     this.chartGroup = new THREE.Group()
     this.applyPosition(options.position)
@@ -71,7 +85,9 @@ export abstract class BaseChart3D<TData = any[]> {
 
     if (options.data) {
       this.currentData = options.data
-      this.buildChart(options.data)
+      this.buildOrEmpty(options.data)
+    } else {
+      this.showEmpty(options.emptyText)
     }
 
     this.autoRotate = options.autoRotate === true
@@ -89,8 +105,54 @@ export abstract class BaseChart3D<TData = any[]> {
   setRotateSpeed(speed: number): void { this.rotateSpeed = speed }
   isAutoRotating(): boolean { return this.autoRotate }
 
+  exportImage(type: 'png' | 'jpeg' = 'png', quality = 0.92): string {
+    this.sceneManager.renderer.render(this.sceneManager.scene, this.sceneManager.camera)
+    return this.sceneManager.renderer.domElement.toDataURL(`image/${type}`, quality)
+  }
+
+  downloadImage(filename = 'chart', type: 'png' | 'jpeg' = 'png'): void {
+    const dataUrl = this.exportImage(type)
+    const link = document.createElement('a')
+    link.download = `${filename}.${type}`
+    link.href = dataUrl
+    link.click()
+  }
+
+  setCameraPreset(preset: 'default' | 'top' | 'front' | 'side'): void {
+    const cam = this.sceneManager.camera
+    const presets: Record<string, [number, number, number]> = {
+      default: [5, 5, 5],
+      top: [0, 8, 0.01],
+      front: [0, 2, 8],
+      side: [8, 2, 0],
+    }
+    const pos = presets[preset] || presets.default
+    cam.position.set(...pos)
+    cam.lookAt(0, 0, 0)
+    if (this.sceneManager.controls) {
+      this.sceneManager.controls.target.set(0, 0, 0)
+      this.sceneManager.controls.update()
+    }
+  }
+
+  toggleFullscreen(): void {
+    if (!document.fullscreenElement) {
+      this.container.requestFullscreen?.()
+    } else {
+      document.exitFullscreen?.()
+    }
+  }
+
   setPosition(position: { x?: number; y?: number; z?: number }): void {
     this.applyPosition(position)
+  }
+
+  protected getColors(): string[] {
+    return this.options.colors || this.themeEngine.getTheme().colors.primary
+  }
+
+  protected getTextColor(): string {
+    return this.options.textColor || this.themeEngine.getTheme().colors.text
   }
 
   private applyPosition(position?: { x?: number; y?: number; z?: number }): void {
@@ -104,7 +166,60 @@ export abstract class BaseChart3D<TData = any[]> {
     if (this.disposed) return
     this.currentData = data
     this.clearChart()
+    this.buildOrEmpty(data)
+  }
+
+  setLegend(items: LegendItem[]): void {
+    if (this.disposed) return
+    this.legend.setItems(items)
+    if (items.length) this.legend.show()
+    else this.legend.hide()
+  }
+
+  protected buildOrEmpty(data: TData): void {
+    this.legend.setItems([])
+    this.legend.hide()
+    if (this.isEmptyData(data)) {
+      this.showEmpty()
+      return
+    }
+    this.hideEmpty()
     this.buildChart(data)
+  }
+
+  protected isEmptyData(data: TData): boolean {
+    if (data == null) return true
+    if (Array.isArray(data)) return data.length === 0
+    if (typeof data === 'object') {
+      const obj = data as any
+      if (Array.isArray(obj.nodes)) return obj.nodes.length === 0
+    }
+    return false
+  }
+
+  protected showEmpty(text?: string): void {
+    const message = text || this.options.emptyText || '暂无数据'
+    if (!this.emptyEl) {
+      this.emptyEl = document.createElement('div')
+      Object.assign(this.emptyEl.style, {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        color: '#94a3b8',
+        fontSize: '14px',
+        pointerEvents: 'none',
+        zIndex: '998',
+      })
+      if (getComputedStyle(this.container).position === 'static') this.container.style.position = 'relative'
+      this.container.appendChild(this.emptyEl)
+    }
+    this.emptyEl.textContent = message
+    this.emptyEl.style.display = 'block'
+  }
+
+  protected hideEmpty(): void {
+    if (this.emptyEl) this.emptyEl.style.display = 'none'
   }
 
   setTheme(theme: string | HoloKitTheme): void {
@@ -128,8 +243,11 @@ export abstract class BaseChart3D<TData = any[]> {
     this.animationManager.dispose()
     this.interactionManager.dispose()
     this.tooltip.dispose()
+    this.legend.dispose()
     this.responsiveManager.dispose()
     this.sceneManager.dispose()
+    if (this.emptyEl?.parentElement === this.container) this.container.removeChild(this.emptyEl)
+    this.emptyEl = null
   }
 
   on(event: 'hover' | 'unhover' | 'click', handler: (data: any) => void): () => void {
@@ -148,7 +266,7 @@ export abstract class BaseChart3D<TData = any[]> {
 
   protected rebuildWithCurrentData(): void {
     this.clearChart()
-    if (this.currentData) this.buildChart(this.currentData)
+    if (this.currentData) this.buildOrEmpty(this.currentData)
   }
 
   protected clearChart(): void {

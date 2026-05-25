@@ -7,8 +7,8 @@
       <p class="hero-subtitle">3D 数据可视化组件库</p>
       <p class="hero-desc">基于 Three.js，支持 Vue2 / Vue3 / React，一行代码创建沉浸式 3D 图表</p>
       <div class="hero-actions">
-        <a href="/guide/getting-started" class="btn-primary">快速开始</a>
-        <a href="https://github.com/nicekid1/HoloKit" class="btn-secondary">GitHub</a>
+        <a href="/holokit/guide/getting-started" class="btn-primary">快速开始</a>
+        <a href="https://github.com/miracleQiang/HoloKit" class="btn-secondary">GitHub</a>
       </div>
     </div>
     <div class="features">

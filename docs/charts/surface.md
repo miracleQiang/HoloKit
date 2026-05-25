@@ -66,6 +66,20 @@ const chart = new SurfaceChart3D(document.getElementById('container'), {
 })
 ```
 
+## 维度信息（X / Y / Z 轴标题）
+
+通过 `xAxis.label`、`yAxis.label`、`zAxis.label` 标注统计维度：
+
+```javascript
+const chart = new SurfaceChart3D(el, {
+  data: surfaceData,
+  xAxis: { label: 'X 坐标' },
+  yAxis: { label: '高度' },
+  zAxis: { label: 'Z 坐标' },
+  unit: 'm',
+})
+```
+
 ## 配置项
 
 | 参数 | 类型 | 默认值 | 说明 |
@@ -74,6 +88,10 @@ const chart = new SurfaceChart3D(document.getElementById('container'), {
 | wireframe | boolean | false | 是否显示线框 |
 | colorMap | string[] | 主题色板 | 高度颜色映射数组 |
 | opacity | number | 1 | 曲面透明度 |
+| xAxis.label | string | — | X 轴标题 |
+| yAxis.label | string | — | Y 轴标题（高度维度名） |
+| zAxis.label | string | — | Z 轴标题 |
+| unit | string | '' | 数值单位 |
 | autoRotate | boolean | false | 是否自动旋转图表 |
 | rotateSpeed | number | 0.005 | 旋转速率（rad/frame） |
 | position | `{ x?, y?, z? }` | `{ 0, 0, 0 }` | 图形位置偏移，默认居中 |

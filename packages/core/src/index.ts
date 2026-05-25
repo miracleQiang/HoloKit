@@ -14,5 +14,7 @@ export { InteractionManager } from './interaction'
 export type { InteractionEvent, InteractionHandler } from './interaction'
 export { Tooltip } from './interaction'
 export type { TooltipOptions } from './interaction'
+export { Legend } from './interaction'
+export type { LegendItem, LegendOptions } from './interaction'
 
 export { ResponsiveManager } from './responsive'

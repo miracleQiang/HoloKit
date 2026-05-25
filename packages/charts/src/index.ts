@@ -33,3 +33,7 @@ export type { GlobeMarker, GlobeChart3DOptions } from './globe'
 
 export { FlipCardTable3D, FloatPanelTable3D } from './table'
 export type { TableRow, FlipCardTable3DOptions, FloatPanelTable3DOptions } from './table'
+
+export { ChartGroup } from './group/ChartGroup'
+
+export type { MarkLineItem } from './base'

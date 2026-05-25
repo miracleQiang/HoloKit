@@ -1,6 +1,11 @@
 <template>
   <DemoContainer title="3D 柱状图">
+    <DemoToolbar @camera="switchCamera" @export="exportPng" @fullscreen="toggleFull" />
     <div ref="el" class="demo-3d"></div>
+    <div class="demo-legend" :style="{ color: current.text }">
+      <span class="legend-item"><span class="legend-dot" :style="{ background: current.colors[0] }"></span>销售额</span>
+      <span class="legend-item legend-mark"><span class="legend-line"></span>均值线</span>
+    </div>
   </DemoContainer>
 </template>
 
@@ -9,6 +14,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import DemoContainer from '../DemoContainer.vue'
+import DemoToolbar from './DemoToolbar.vue'
 import { useDemoTheme, AUTO_ROTATE_SPEED } from '../demo-theme'
 
 const el = ref<HTMLDivElement | null>(null)
@@ -16,6 +22,33 @@ const { current } = useDemoTheme()
 let renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera
 let controls: OrbitControls, animId: number | null = null, ro: ResizeObserver | null = null
 let chartGroup: THREE.Group, ambient: THREE.AmbientLight, dirLight: THREE.DirectionalLight
+
+const cameraPresets: Record<string, [number, number, number]> = {
+  default: [6, 5, 8],
+  top: [0, 12, 0.01],
+  front: [0, 3, 12],
+}
+
+function switchCamera(preset: string) {
+  const pos = cameraPresets[preset] || cameraPresets.default
+  camera.position.set(...pos)
+  camera.lookAt(0, 1, 0)
+  controls?.update()
+}
+
+function exportPng() {
+  if (!renderer) return
+  renderer.render(scene, camera)
+  const url = renderer.domElement.toDataURL('image/png')
+  const a = document.createElement('a')
+  a.download = 'chart.png'; a.href = url; a.click()
+}
+
+function toggleFull() {
+  if (!el.value) return
+  if (!document.fullscreenElement) el.value.requestFullscreen?.()
+  else document.exitFullscreen?.()
+}
 
 const data = [
   { label: '1月', value: 120 },
@@ -122,6 +155,19 @@ function buildBars() {
   const yTitle = makeTextSprite(yAxisTitle, labelColor, { fontSize: 60, worldHeight: 0.34, bold: true })
   yTitle.position.set(-halfW - 1.2, chartH / 2, 0)
   chartGroup.add(yTitle)
+
+  // markLine 均值线
+  const avg = data.reduce((s, d) => s + d.value, 0) / data.length
+  const avgY = (avg / maxVal) * chartH
+  const dashMat = new THREE.LineDashedMaterial({ color: '#f59e0b', dashSize: 0.1, gapSize: 0.05 })
+  const mlPts = [new THREE.Vector3(-halfW, avgY, 0), new THREE.Vector3(halfW, avgY, 0)]
+  const mlGeo = new THREE.BufferGeometry().setFromPoints(mlPts)
+  const mlLine = new THREE.Line(mlGeo, dashMat)
+  mlLine.computeLineDistances()
+  chartGroup.add(mlLine)
+  const avgLabel = makeTextSprite(`均值 ${Math.round(avg)}${unit}`, '#f59e0b', { fontSize: 44, worldHeight: 0.25 })
+  avgLabel.position.set(halfW + 0.3, avgY, 0)
+  chartGroup.add(avgLabel)
 }
 
 function applyTheme() {
@@ -160,4 +206,11 @@ watch(current, () => scene && applyTheme())
 onUnmounted(() => { if (animId) cancelAnimationFrame(animId); ro?.disconnect(); renderer?.dispose() })
 </script>
 
-<style scoped>.demo-3d { width: 100%; height: 400px; }</style>
+<style scoped>
+.demo-3d { width: 100%; height: 400px; }
+.demo-legend { display: flex; gap: 12px; margin-top: 8px; font-size: 12px; }
+.legend-item { display: inline-flex; align-items: center; gap: 4px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend-mark { gap: 4px; }
+.legend-line { width: 16px; height: 2px; background: #f59e0b; display: inline-block; border-top: 1px dashed #f59e0b; }
+</style>
