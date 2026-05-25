@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+  <rect width="640" height="360" fill="#0a0e1a"/>
+  <rect x="16" y="12" width="608" height="32" rx="4" fill="#1e293b"/>
+  <text x="320" y="33" text-anchor="middle" fill="#00f5ff" font-size="14" font-family="sans-serif">BI 数据分析大屏</text>
+  <rect x="16" y="52" width="145" height="40" rx="4" fill="#1e293b"/>
+  <rect x="169" y="52" width="145" height="40" rx="4" fill="#1e293b"/>
+  <rect x="322" y="52" width="145" height="40" rx="4" fill="#1e293b"/>
+  <rect x="475" y="52" width="145" height="40" rx="4" fill="#1e293b"/>
+  <text x="88" y="76" text-anchor="middle" fill="#00f5ff" font-size="10">¥12.8M</text>
+  <text x="241" y="76" text-anchor="middle" fill="#a855f7" font-size="10">86,420</text>
+  <text x="394" y="76" text-anchor="middle" fill="#30d158" font-size="10">1.2M</text>
+  <text x="547" y="76" text-anchor="middle" fill="#ff375f" font-size="10">4.8%</text>
+  <rect x="16" y="100" width="200" height="120" rx="6" fill="#111827" stroke="#1e293b"/>
+  <rect x="30" y="180" width="16" height="30" fill="#00f5ff" opacity="0.8"/>
+  <rect x="52" y="160" width="16" height="50" fill="#00f5ff" opacity="0.6"/>
+  <rect x="74" y="140" width="16" height="70" fill="#a855f7" opacity="0.8"/>
+  <rect x="96" y="150" width="16" height="60" fill="#a855f7" opacity="0.6"/>
+  <rect x="118" y="130" width="16" height="80" fill="#30d158" opacity="0.8"/>
+  <rect x="140" y="170" width="16" height="40" fill="#30d158" opacity="0.6"/>
+  <rect x="220" y="100" width="200" height="120" rx="6" fill="#111827" stroke="#1e293b"/>
+  <polyline points="234,190 260,170 290,175 320,150 350,140 380,130 400,120" stroke="#00f5ff" stroke-width="2" fill="none"/>
+  <polyline points="234,195 260,185 290,190 320,175 350,170 380,165 400,155" stroke="#a855f7" stroke-width="2" fill="none"/>
+  <rect x="424" y="100" width="196" height="120" rx="6" fill="#111827" stroke="#1e293b"/>
+  <circle cx="500" cy="160" r="40" fill="none" stroke="#00f5ff" stroke-width="8" stroke-dasharray="80 170"/>
+  <circle cx="500" cy="160" r="40" fill="none" stroke="#a855f7" stroke-width="8" stroke-dasharray="50 200" stroke-dashoffset="-80"/>
+  <circle cx="500" cy="160" r="40" fill="none" stroke="#30d158" stroke-width="8" stroke-dasharray="40 210" stroke-dashoffset="-130"/>
+  <rect x="16" y="228" width="200" height="120" rx="6" fill="#111827" stroke="#1e293b"/>
+  <circle cx="60" cy="280" r="4" fill="#00f5ff"/><circle cx="80" cy="300" r="3" fill="#00f5ff"/>
+  <circle cx="100" cy="270" r="5" fill="#a855f7"/><circle cx="130" cy="290" r="3" fill="#a855f7"/>
+  <circle cx="150" cy="260" r="4" fill="#30d158"/><circle cx="170" cy="310" r="3" fill="#30d158"/>
+  <rect x="220" y="228" width="400" height="120" rx="6" fill="#111827" stroke="#1e293b"/>
+  <text x="230" y="248" fill="#94a3b8" font-size="9">实时订单流水</text>
+  <rect x="230" y="255" width="380" height="14" rx="2" fill="#1e293b"/>
+  <rect x="230" y="273" width="380" height="14" rx="2" fill="#0f172a"/>
+  <rect x="230" y="291" width="380" height="14" rx="2" fill="#1e293b"/>
+  <rect x="230" y="309" width="380" height="14" rx="2" fill="#0f172a"/>
+  <rect x="230" y="327" width="380" height="14" rx="2" fill="#1e293b"/>
+</svg>

@@ -14,6 +14,7 @@ export default defineConfig({
       { text: '图表', link: '/charts/bar' },
       { text: '地图', link: '/map/basic' },
       { text: 'API', link: '/api/reference' },
+      { text: '演示', link: '/examples/' },
     ],
     sidebar: {
       '/guide/': [

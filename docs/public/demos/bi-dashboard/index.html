@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HoloKit BI 数据分析大屏</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.164.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.164.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:#0a0e1a;color:#e2e8f0;
+  font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;overflow:hidden}
+#app{display:grid;grid-template-rows:56px 100px 1fr 1fr;height:100vh;gap:8px;padding:8px}
+#header{display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,#0d1b2e 0%,#111827 50%,#0d1b2e 100%);
+  border:1px solid #1e3a5f;border-radius:8px;padding:0 20px;position:relative;overflow:hidden}
+#header::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#00f5ff,#a855f7,#00f5ff,transparent);
+  animation:scanline 3s linear infinite}
+@keyframes scanline{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.header-title{font-size:20px;font-weight:700;letter-spacing:3px;
+  background:linear-gradient(90deg,#00f5ff,#a855f7,#00f5ff);background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4s linear infinite}
+@keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
+.header-right{display:flex;align-items:center;gap:20px}
+.header-badge{font-size:11px;color:#64d2ff;border:1px solid #1e3a5f;
+  padding:3px 10px;border-radius:12px;letter-spacing:1px}
+#clock{font-size:16px;font-weight:600;color:#00f5ff;
+  font-variant-numeric:tabular-nums;letter-spacing:2px}
+#kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi-card{background:#111827;border:1px solid #1e293b;border-radius:8px;
+  padding:10px 16px;display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden}
+.kpi-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi-card:nth-child(1)::after{background:#00f5ff}
+.kpi-card:nth-child(2)::after{background:#a855f7}
+.kpi-card:nth-child(3)::after{background:#30d158}
+.kpi-card:nth-child(4)::after{background:#ffd60a}
+.kpi-label{font-size:11px;color:#64748b;letter-spacing:1px}
+.kpi-value{font-size:22px;font-weight:700;line-height:1.2}
+.kpi-card:nth-child(1) .kpi-value{color:#00f5ff}
+.kpi-card:nth-child(2) .kpi-value{color:#a855f7}
+.kpi-card:nth-child(3) .kpi-value{color:#30d158}
+.kpi-card:nth-child(4) .kpi-value{color:#ffd60a}
+.kpi-change{font-size:11px;display:flex;align-items:center;gap:4px}
+.kpi-change.up{color:#30d158}.kpi-change.down{color:#ff375f}
+#row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+#row4{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.panel{background:#111827;border:1px solid #1e293b;border-radius:8px;
+  display:flex;flex-direction:column;overflow:hidden}
+.panel-title{font-size:12px;color:#94a3b8;padding:8px 12px;
+  border-bottom:1px solid #1e293b;letter-spacing:1px;
+  display:flex;align-items:center;gap:6px;flex-shrink:0}
+.panel-title::before{content:'';width:3px;height:12px;border-radius:2px}
+#bar-panel  .panel-title::before{background:#00f5ff}
+#line-panel .panel-title::before{background:#a855f7}
+#pie-panel  .panel-title::before{background:#ff375f}
+#scat-panel .panel-title::before{background:#30d158}
+#tbl-panel  .panel-title::before{background:#ffd60a}
+.panel canvas{flex:1;display:block;width:100%!important;height:100%!important}
+.tbl-wrap{flex:1;overflow:hidden;position:relative}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table thead th{background:#0d1b2e;color:#64d2ff;padding:6px 10px;
+  text-align:left;font-weight:600;letter-spacing:1px;
+  border-bottom:1px solid #1e3a5f;position:sticky;top:0;z-index:1}
+.data-table tbody tr{border-bottom:1px solid #1a2332}
+.data-table tbody tr:hover{background:#1a2332}
+.data-table tbody td{padding:5px 10px;color:#94a3b8}
+.data-table tbody td:first-child{color:#64d2ff;font-family:monospace}
+.sb{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.s-ok {background:rgba(48,209,88,.15);color:#30d158;border:1px solid rgba(48,209,88,.3)}
+.s-pnd{background:rgba(255,214,10,.15);color:#ffd60a;border:1px solid rgba(255,214,10,.3)}
+.s-err{background:rgba(255,55,95,.15);color:#ff375f;border:1px solid rgba(255,55,95,.3)}
+#sbody{animation:tscroll 24s linear infinite}
+@keyframes tscroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div class="header-title">HoloKit BI 数据分析大屏</div>
+    <div class="header-right">
+      <span class="header-badge">POWERED BY HOLOKIT</span>
+      <span class="header-badge">REAL-TIME</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+  <div id="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">总营收</div>
+      <div class="kpi-value">¥12,847,320</div>
+      <div class="kpi-change up">▲ 12.4% 较上月</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">订单量</div>
+      <div class="kpi-value">86,420</div>
+      <div class="kpi-change up">▲ 8.7% 较上月</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">活跃用户</div>
+      <div class="kpi-value">1,247,800</div>
+      <div class="kpi-change up">▲ 15.2% 较上月</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">转化率</div>
+      <div class="kpi-value">4.82%</div>
+      <div class="kpi-change down">▼ 0.3% 较上月</div>
+    </div>
+  </div>
+  <div id="row3">
+    <div class="panel" id="bar-panel">
+      <div class="panel-title">月度销售额</div>
+      <canvas id="bar-canvas"></canvas>
+    </div>
+    <div class="panel" id="line-panel">
+      <div class="panel-title">营收 vs 成本趋势</div>
+      <canvas id="line-canvas"></canvas>
+    </div>
+    <div class="panel" id="pie-panel">
+      <div class="panel-title">渠道占比</div>
+      <canvas id="pie-canvas"></canvas>
+    </div>
+  </div>
+  <div id="row4">
+    <div class="panel" id="scat-panel">
+      <div class="panel-title">用户画像分布</div>
+      <canvas id="scat-canvas"></canvas>
+    </div>
+    <div class="panel" id="tbl-panel">
+      <div class="panel-title">实时订单流水</div>
+      <div class="tbl-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>订单号</th><th>商品</th><th>金额</th><th>状态</th><th>时间</th>
+          </tr></thead>
+          <tbody id="sbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ── Clock ────────────────────────────────────────────────────────────────────
+const p2 = n => String(n).padStart(2,'0');
+function tick(){
+  const d=new Date();
+  document.getElementById('clock').textContent=
+    `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+}
+tick(); setInterval(tick,1000);
+
+// ── Palette ──────────────────────────────────────────────────────────────────
+const C=[0x00f5ff,0xa855f7,0xff375f,0x30d158,0xffd60a,0x64d2ff];
+
+// ── Shared helpers ───────────────────────────────────────────────────────────
+function mkR(id){
+  const canvas=document.getElementById(id);
+  const r=new THREE.WebGLRenderer({canvas,antialias:true});
+  r.setPixelRatio(Math.min(devicePixelRatio,2));
+  r.setClearColor(0x111827,1);
+  return{r,canvas};
+}
+function mkCam(fov=45){return new THREE.PerspectiveCamera(fov,1,0.1,1000);}
+function mkCtrl(cam,canvas,speed=1.4){
+  const c=new OrbitControls(cam,canvas);
+  c.enableDamping=true; c.dampingFactor=0.05;
+  c.autoRotate=true; c.autoRotateSpeed=speed;
+  c.enableZoom=false; c.enablePan=false;
+  return c;
+}
+function rsz(renderer,camera,canvas){
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  if(canvas.width!==w||canvas.height!==h){
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h; camera.updateProjectionMatrix();
+  }
+}
+function addGrid(scene){
+  scene.add(new THREE.GridHelper(12,12,0x1e293b,0x1e293b));
+}
+
+// ── Bar Chart ────────────────────────────────────────────────────────────────
+(function(){
+  const{r,canvas}=mkR('bar-canvas');
+  const scene=new THREE.Scene();
+  const cam=mkCam(45); cam.position.set(0,5,12);
+  const ctrl=mkCtrl(cam,canvas);
+  scene.add(new THREE.AmbientLight(0xffffff,0.4));
+  const dl=new THREE.DirectionalLight(0x00f5ff,1.2); dl.position.set(5,10,5); scene.add(dl);
+
+  const data=[
+    {v:0.55},{v:0.42},{v:0.68},{v:0.75},{v:0.60},{v:0.88}
+  ];
+  const maxH=5, sp=1.6, off=-(data.length-1)*sp/2;
+  data.forEach((d,i)=>{
+    const h=d.v*maxH;
+    const geo=new THREE.BoxGeometry(1,h,1);
+    const mat=new THREE.MeshStandardMaterial({
+      color:C[i%C.length],emissive:C[i%C.length],emissiveIntensity:0.3,
+      metalness:0.6,roughness:0.3
+    });
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set(off+i*sp,h/2,0);
+    scene.add(mesh);
+    const cg=new THREE.BoxGeometry(1.02,0.08,1.02);
+    const cm=new THREE.MeshStandardMaterial({color:C[i%C.length],emissive:C[i%C.length],emissiveIntensity:1});
+    const cap=new THREE.Mesh(cg,cm);
+    cap.position.set(off+i*sp,h+0.04,0);
+    scene.add(cap);
+  });
+  addGrid(scene);
+  (function loop(){requestAnimationFrame(loop);rsz(r,cam,canvas);ctrl.update();r.render(scene,cam);})();
+})();
+
+// ── Line Chart ───────────────────────────────────────────────────────────────
+(function(){
+  const{r,canvas}=mkR('line-canvas');
+  const scene=new THREE.Scene();
+  const cam=mkCam(45); cam.position.set(0,4,12);
+  const ctrl=mkCtrl(cam,canvas);
+  scene.add(new THREE.AmbientLight(0xffffff,0.4));
+  const dl=new THREE.DirectionalLight(0xa855f7,1.0); dl.position.set(-5,8,5); scene.add(dl);
+
+  const rev=[4.2,5.1,4.8,6.3,5.9,7.2,6.8,8.1,7.5,9.2,8.8,10.5];
+  const cst=[2.8,3.2,3.0,3.8,3.5,4.1,3.9,4.6,4.2,5.0,4.8,5.6];
+
+  function buildLine(vals,color){
+    const pts=vals.map((v,i)=>new THREE.Vector3((i/(vals.length-1))*10-5,(v/12)*5,0));
+    const curve=new THREE.CatmullRomCurve3(pts);
+    const geo=new THREE.BufferGeometry().setFromPoints(curve.getPoints(80));
+    scene.add(new THREE.Line(geo,new THREE.LineBasicMaterial({color})));
+    pts.forEach(p=>{
+      const m=new THREE.Mesh(
+        new THREE.SphereGeometry(0.12,8,8),
+        new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.8})
+      );
+      m.position.copy(p); scene.add(m);
+    });
+  }
+  buildLine(rev,0x00f5ff);
+  buildLine(cst,0xff375f);
+  addGrid(scene);
+  (function loop(){requestAnimationFrame(loop);rsz(r,cam,canvas);ctrl.update();r.render(scene,cam);})();
+})();
+
+// ── Pie Chart ────────────────────────────────────────────────────────────────
+(function(){
+  const{r,canvas}=mkR('pie-canvas');
+  const scene=new THREE.Scene();
+  const cam=mkCam(45); cam.position.set(0,6,8);
+  const ctrl=mkCtrl(cam,canvas,2.0);
+  scene.add(new THREE.AmbientLight(0xffffff,0.5));
+  const dl=new THREE.DirectionalLight(0xffffff,1.0); dl.position.set(5,10,5); scene.add(dl);
+
+  const segs=[
+    {v:35,color:C[0]},{v:28,color:C[1]},{v:20,color:C[2]},
+    {v:12,color:C[3]},{v:5, color:C[4]}
+  ];
+  const total=segs.reduce((s,d)=>s+d.v,0);
+  let start=0;
+  segs.forEach(seg=>{
+    const angle=(seg.v/total)*Math.PI*2;
+    const mid=start+angle/2;
+    const shape=new THREE.Shape();
+    shape.moveTo(0,0);
+    shape.absarc(0,0,2.5,start+0.02,start+angle-0.02,false);
+    shape.lineTo(0,0);
+    const geo=new THREE.ExtrudeGeometry(shape,{depth:0.6,bevelEnabled:false});
+    const mat=new THREE.MeshStandardMaterial({
+      color:seg.color,emissive:seg.color,emissiveIntensity:0.25,
+      metalness:0.5,roughness:0.4
+    });
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.position.set(Math.cos(mid)*0.15,0,Math.sin(mid)*0.15);
+    mesh.rotation.x=-Math.PI/2;
+    scene.add(mesh);
+    start+=angle;
+  });
+  (function loop(){requestAnimationFrame(loop);rsz(r,cam,canvas);ctrl.update();r.render(scene,cam);})();
+})();
+
+// ── Scatter Chart ────────────────────────────────────────────────────────────
+(function(){
+  const{r,canvas}=mkR('scat-canvas');
+  const scene=new THREE.Scene();
+  const cam=mkCam(45); cam.position.set(0,5,12);
+  const ctrl=mkCtrl(cam,canvas);
+  scene.add(new THREE.AmbientLight(0xffffff,0.4));
+  const dl=new THREE.DirectionalLight(0x30d158,1.0); dl.position.set(5,10,5); scene.add(dl);
+
+  const groups=[
+    {color:0x00f5ff,cx:-2,cy:1,cz:-1},
+    {color:0xa855f7,cx:2, cy:2,cz:1},
+    {color:0xff375f,cx:0, cy:0,cz:2}
+  ];
+  groups.forEach(g=>{
+    for(let i=0;i<14;i++){
+      const m=new THREE.Mesh(
+        new THREE.SphereGeometry(0.12,8,8),
+        new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:0.5})
+      );
+      m.position.set(
+        g.cx+(Math.random()-.5)*3,
+        g.cy+(Math.random()-.5)*3,
+        g.cz+(Math.random()-.5)*3
+      );
+      scene.add(m);
+    }
+  });
+  addGrid(scene);
+  (function loop(){requestAnimationFrame(loop);rsz(r,cam,canvas);ctrl.update();r.render(scene,cam);})();
+})();
+
+// ── Data Table ───────────────────────────────────────────────────────────────
+(function(){
+  const prods=['MacBook Pro 16"','iPhone 15 Pro','AirPods Pro','iPad Air',
+    'Apple Watch Ultra','HomePod mini','Magic Keyboard','Studio Display',
+    'Mac mini M4','Pro Display XDR','iPhone 15','MacBook Air M3'];
+  const stMap=[
+    {cls:'s-ok', label:'已完成'},
+    {cls:'s-ok', label:'已完成'},
+    {cls:'s-ok', label:'已完成'},
+    {cls:'s-pnd',label:'处理中'},
+    {cls:'s-err',label:'已失败'}
+  ];
+  function mkRow(){
+    const id='ORD'+String(Math.floor(Math.random()*9000000+1000000));
+    const prod=prods[Math.floor(Math.random()*prods.length)];
+    const amt='¥'+(Math.random()*20000+500).toFixed(2);
+    const st=stMap[Math.floor(Math.random()*stMap.length)];
+    const d=new Date();
+    const t=`${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+    return`<tr><td>${id}</td><td>${prod}</td><td style="color:#ffd60a;font-weight:600">${amt}</td><td><span class="sb ${st.cls}">${st.label}</span></td><td>${t}</td></tr>`;
+  }
+  const rows=Array.from({length:15},mkRow);
+  document.getElementById('sbody').innerHTML=[...rows,...rows].join('');
+})();
+
+</script>
+</body>
+</html>
